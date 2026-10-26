@@ -1,0 +1,9 @@
+# @package _global_
+# Cluster the embeddings and score against the ground-truth labels.
+metadata:
+  run_name: cluster
+
+pipeline:
+  step: cluster
+  n_clusters: 3
+  seed: 42

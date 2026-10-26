@@ -1,0 +1,9 @@
+# @package _global_
+# Verify the dataset against its MLflow registration and split it.
+metadata:
+  run_name: split
+
+pipeline:
+  step: split
+  test_size: 0.2
+  seed: 42

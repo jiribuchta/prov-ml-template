@@ -1,0 +1,11 @@
+# @package _global_
+# Generate the toy dataset (gaussian blobs) and register it in MLflow.
+metadata:
+  run_name: create
+
+pipeline:
+  step: create
+  n_samples: 300
+  n_features: 16
+  centers: 3 # latent clusters the later clustering step should recover
+  seed: 42

@@ -1,0 +1,4 @@
+defaults:
+  - base
+  - pipeline: ??? # select with pipeline=create|split|embed|cluster
+  - _self_

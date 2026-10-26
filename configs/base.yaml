@@ -3,8 +3,10 @@ defaults:
   - logger: mlflow
   - _self_
 
-data_path: /mnt/data/..  # TODO: enter the raw data folder
-project_path: /mnt/projects/..  # TODO: enter the project folder
+# Where the raw sample files + manifest.csv live (overridden per environment).
+data_path: data/toy-blobs
 
 metadata:
-  experiment_name: ??? # TODO: enter the MLFlow project/experiment name
+  experiment_name: ??? # MLflow experiment all pipeline steps log to
+  run_name: ??? # set per step by configs/pipeline/<step>.yaml
+  description: ??? # shown as the MLflow run note

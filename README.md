@@ -1,92 +1,98 @@
-# Machine Learning Template
+# Provenance Pipeline Template
 
-This project provides a machine learning quickstart template using PyTorch Lightning, Hydra, MLflow, and uv.
+A machine learning template where **every step is provenance-tracked**: who ran
+what, on which data, with which code and environment — all recorded in MLflow by
+[rationai-provenance](https://github.com/RationAI/provenance) so a W3C PROV
+document can be assembled from the runs later.
 
-## Installation
+The demo pipeline: **create → split → embed → cluster**
 
-1.  **Clone the repository:**
-    ```bash
-    git clone <your-repository-url>
-    cd machine-learning
-    ```
-2.  **Install uv:**
-    Follow the instructions on the [uv website](https://docs.astral.sh/uv/getting-started/installation/) if you don't have it installed.
-3.  **Install dependencies:**
-    This command creates a virtual environment and installs all necessary packages defined in [`pyproject.toml`](pyproject.toml).
-    ```bash
-    uv sync
-    ```
-    or if you need to submit a job to a cluster, use:
-    ```bash
-    uv sync --extra job
-    ```
+| Step | What it does | Provenance shown |
+| --- | --- | --- |
+| `create` | generates a toy dataset (gaussian blobs) + `manifest.csv` | `register_dataset` → file sizes/mtimes in `Dataset_Registry` |
+| `split` | verifies the data on disk against the registration, splits train/test | `verify_dataset`, `dataset_verified` tag, split CSVs as artifacts |
+| `embed` | PCA-reduces the train split to 2-D embeddings | consumes the split run's artifact (`inputs`) |
+| `cluster` | k-means + adjusted Rand index vs ground truth | consumes the embed run's artifact (`inputs`) |
 
-## Configuration
+Each step is one MLflow run, tagged `step=<name>`. Downstream steps find their
+upstream via `dataset.mlflow_uris` in the config (pinned `runs:/...` URI), or
+automatically use the latest finished run of that step.
 
-This project uses [Hydra](https://hydra.cc/) for configuration management.
-
--   Configuration files are located in the [`configs/`](configs) directory.
--   The configuration file [`configs/base.yaml`](configs/base.yaml) is the default project configuration which all other configurations inherit from.
--   You can override configuration parameters directly from the command line. For example, to change the batch size:
-    ```bash
-    uv run python -m <project_name> mode=fit data.batch_size=64
-    ```
-    Such approach is recomended throughtout development process, however, when submitting final changes to master branch it's recommended to create separate experiment configuration files in the `experiment` subdirectory for better organization and reproducibility.
--   The structure of the configs directory should follow the example below.
-    ```plaintext
-    configs
-    ├── data                        # Data-related configurations
-    ├── experiment                  # Experiment-specific configurations
-    │   └── <some_experiment>
-    ├── hydra
-    │   ├── default.yaml
-    │   └── job_logging
-    │       └── custom.yaml
-    ├── logger
-    │   └── mlflow.yaml
-    ├── preprocessing
-    │   ├── qc.yaml
-    │   ├── tiling.yaml
-    │   └── tissue_masks.yaml
-    ├── base.yaml
-    ├── preprocessing.yaml
-    ├── ml.yaml
-    └── ml
-        └── <some_configurations>   # Place your training configurations here
-    ```
--   Please do not delete the `configs/hydra` directory as it is required for Hydra execution.
--   MLflow is configured as the default logger (see [`configs/default.yaml`](configs/default.yaml)).
-
-## Usage
-
--   **Train the model:**
-    ```bash
-    uv run python -m <project_name> mode=fit
-    ```
-
--   **Validate the model:**
-    Requires a checkpoint path to be set in the configuration (e.g., `checkpoint=path/to/your/checkpoint.ckpt`) or passed via the command line.
-    ```bash
-    uv run python -m <project_name> mode=validate checkpoint=path/to/checkpoint.ckpt
-    ```
-
--   **Test the model:**
-    Requires a checkpoint path.
-    ```bash
-    uv run python -m <project_name> mode=test checkpoint=path/to/checkpoint.ckpt
-    ```
-
--   **Run prediction:**
-    Requires a checkpoint path.
-    ```bash
-    uv run python -m <project_name> mode=predict checkpoint=path/to/checkpoint.ckpt
-    ```
-
-
-## Linting, Formatting and Type Checking:
+## Setup
 
 ```bash
-uvx ruff check  # Check and fix linting issues
-uvx ruff format # Format code
-uv run mypy .     # Run mypy
+uv sync                      # create the environment
+export MLFLOW_TRACKING_URI=...   # your MLflow server
+export MLFLOW_USER=...           # your username
+```
+
+Register yourself once (one `User_Registry` run, links all your runs to you):
+
+```bash
+uv run python -c "from rationai.provenance import register_new_user; \
+register_new_user(username='jdoe', real_name='Jane Doe', email='jdoe@example.org', \
+organization='RationAI', lead_name='Prof. Lead', lead_email='lead@example.org')"
+```
+
+## Run the pipeline
+
+Each command is one step; run them in order:
+
+```bash
+uv run python -m pipeline pipeline=create  +experiment=provenance_pipeline
+uv run python -m pipeline pipeline=split   +experiment=provenance_pipeline
+uv run python -m pipeline pipeline=embed   +experiment=provenance_pipeline
+uv run python -m pipeline pipeline=cluster +experiment=provenance_pipeline
+```
+
+Step parameters live in [`configs/pipeline/`](configs/pipeline) (samples, test
+size, PCA dims, cluster count) and can be overridden on the command line:
+
+```bash
+uv run python -m pipeline pipeline=cluster +experiment=provenance_pipeline pipeline.n_clusters=5
+```
+
+### Pinning upstream runs
+
+By default, `embed`/`cluster` consume the **latest** finished run of their
+upstream step. To freeze the chain to specific runs, pin them in
+[`configs/experiment/provenance_pipeline.yaml`](configs/experiment/provenance_pipeline.yaml)
+— every step prints the exact line to paste:
+
+```
+[hint] to pin this run for downstream steps, set in the experiment config:
+         dataset.mlflow_uris.split=runs:/<run_id>/train.csv
+```
+
+## What to look for in the MLflow UI
+
+- **Dataset registration** (`Dataset_Registry` experiment): a run per dataset
+  version with `file_sizes` / `file_mtimes` tags — the fingerprint that
+  `verify_dataset` checks your disk against.
+- **Pipeline runs** (the experiment named in the config): one run per step.
+  - *Tags*: `step`, `dataset_verified`, `dataset_run_id`, `user_run_id`, git
+    commit, docker image, hardware, seeds — and `job_*` (cluster, CPU/memory
+    limits, image) when running as a kube-job.
+  - *Params*: the whole Hydra config (`cfg_*`, interpolations resolved) plus
+    per-split sample counts.
+  - *Artifacts*: `train.csv`/`test.csv`, `embeddings/`, `cluster/`, the frozen
+    requirements, the Hydra configs, and `console.log` (stdout capture).
+  - `embed`/`cluster` runs list their upstream under the `input_uris` tag.
+
+## Running on the cluster
+
+```bash
+uv sync --extra job    # kube-jobs (feature/job-env-metadata branch)
+# edit the TODOs in scripts/submit_pipeline.py (repo URL, username, image)
+uv run python scripts/submit_pipeline.py
+```
+
+One job runs all four steps; in-cluster runs get `MLFLOW_TRACKING_URI` from the
+cluster default and `job_*` tags from the kube-jobs-injected `JOB_*` env vars.
+
+## Development
+
+```bash
+uvx ruff check
+uv run mypy .
 ```
