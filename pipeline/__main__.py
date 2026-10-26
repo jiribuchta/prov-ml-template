@@ -7,10 +7,10 @@ provenance via [rationai-provenance](https://github.com/RationAI/provenance):
   (``<data_path>/<class>/<sample>.csv``) and register it
   (``register_dataset``: file sizes/mtimes → ``Dataset_Registry``).
 * **split**   — verify the data on disk against the registration
-  (``verify_dataset``), then split the FILES into train/test folders
-  (copied into the run's ``split/`` artifact, class layout preserved).
-* **embed**   — reduce the split run's train FILES to PCA embeddings;
-  consumes the split run's artifact.
+  (``verify_dataset``), then split the FILES into train/test lists
+  (each sample file wholly on one side; only the lists are logged).
+* **embed**   — reduce the train samples (feature files in
+  ``data_path``) to PCA embeddings; consumes the split run's artifact.
 * **cluster** — k-means on the embeddings + adjusted Rand index vs the
   ground truth; consumes the embed run's artifact.
 
@@ -29,7 +29,6 @@ Run with::
 from __future__ import annotations
 
 from pathlib import Path
-from shutil import copy2
 from tempfile import TemporaryDirectory
 from typing import TYPE_CHECKING, Any
 
@@ -106,31 +105,68 @@ def _pin_hint(key: str, run_id: str, artifact: str) -> None:
 # ── Steps ───────────────────────────────────────────────────────────────
 
 
+def _read_source(source: str) -> pd.DataFrame:
+    """Read the source table with sample paths (csv or xlsx)."""
+    if source.endswith(".csv"):
+        return pd.read_csv(source)
+    return pd.read_excel(source)  # openpyxl handles .xlsx
+
+
 def _create(config: DictConfig, logger: MLFlowLogger) -> None:
-    """Build a manifest from a data folder and register the dataset.
+    """Build the dataset manifest and register the dataset.
 
-    Expected layout (one feature vector per CSV file, one class per
-    subfolder — sorted subfolder names map to the integer labels the
-    provenance manifest requires)::
+    ``pipeline.source`` selects the input shape:
 
-        <data_path>/<class>/<sample>.csv
+    * a table (csv/xlsx) whose ``path_column`` lists the sample files
+      (absolute, or relative to ``data_path``); the optional
+      ``label_column`` holds integer labels (``0`` when absent) —
+      e.g. a slide folder + an xlsx cohort table,
+    * ``null``: the data folder itself, one class subfolder per label,
+      ``<data_path>/<class>/<file>``.
     """
     del logger  # the registration run is managed by register_dataset
-
+    step = config.pipeline
     data_root = _data_root(config)
-    files = sorted(data_root.glob("*/*.csv"))
-    if not files:
-        raise FileNotFoundError(
-            f"No sample files in '{data_root}' — expected the layout "
-            "<data_path>/<class>/<sample>.csv (one feature row per file)."
-        )
-    classes = sorted({f.parent.name for f in files})
-    class_index = {name: i for i, name in enumerate(classes)}
 
+    if step.source:
+        if not step.path_column:
+            raise ValueError("pipeline.path_column is required with pipeline.source")
+        table = _read_source(str(step.source))
+        paths = [Path(str(value).strip()) for value in table[str(step.path_column)]]
+        paths = [p if p.is_absolute() else data_root / p for p in paths]
+        labels = (
+            table[str(step.label_column)].astype(int).tolist()
+            if step.label_column
+            else [0] * len(paths)
+        )
+    else:
+        files = sorted(data_root.glob("*/*.csv"))
+        if not files:
+            raise FileNotFoundError(
+                f"No sample files in '{data_root}' — expected the layout "
+                "<data_path>/<class>/<file>, or set pipeline.source to a "
+                "table with paths."
+            )
+        classes = sorted({f.parent.name for f in files})
+        class_index = {name: i for i, name in enumerate(classes)}
+        paths = files
+        labels = [class_index[f.parent.name] for f in files]
+
+    missing = [str(p) for p in paths if not p.is_file()]
+    if missing:
+        raise FileNotFoundError(
+            f"{len(missing)} of {len(paths)} sample files not found, "
+            f"e.g. {missing[:3]} — check data_path / pipeline.path_column."
+        )
     manifest = pd.DataFrame(
         {
-            PATH_COLUMN: [str(f.relative_to(data_root)) for f in files],
-            LABEL_COLUMN: [class_index[f.parent.name] for f in files],
+            PATH_COLUMN: [
+                str(p.resolve().relative_to(data_root))
+                if data_root in p.parents
+                else str(p)  # outside data_path: keep the absolute path
+                for p in paths
+            ],
+            LABEL_COLUMN: labels,
         }
     )
     manifest.to_csv(data_root / "manifest.csv", index=False)
@@ -142,17 +178,16 @@ def _create(config: DictConfig, logger: MLFlowLogger) -> None:
         dataset_name=str(dataset.name),
         version=str(dataset.version),
     )
-    print(f"[create] {len(files)} samples in {len(classes)} classes → registered")
-    print(f"[create] classes: {class_index}")
+    print(f"[create] {len(manifest)} samples → registered")
+    print(f"[create] labels: {dict(manifest[LABEL_COLUMN].value_counts())}")
 
 
 def _split(config: DictConfig, logger: MLFlowLogger) -> None:
-    """Verify the dataset, then split the FILES into train/test folders.
+    """Verify the dataset, then split the FILES into train/test lists.
 
-    Copies each sample file into ``split/train/`` or ``split/test/``
-    (keeping the class-subfolder layout) and writes the corresponding
-    ``train.csv``/``test.csv`` manifests — all logged as run artifacts, so
-    downstream steps no longer need the original data folder.
+    Each sample file goes wholly into one side (no file is split across
+    train and test). Only the lists become run artifacts — the data itself
+    stays on disk in ``data_path`` (too big to copy for real datasets).
     """
     step = config.pipeline
     data_root = _data_root(config)
@@ -169,20 +204,17 @@ def _split(config: DictConfig, logger: MLFlowLogger) -> None:
     )
 
     manifest = pd.read_csv(manifest_path)
+    stratify = manifest[LABEL_COLUMN] if manifest[LABEL_COLUMN].nunique() > 1 else None
     train, test = train_test_split(
         manifest,
         test_size=float(step.test_size),
-        stratify=manifest[LABEL_COLUMN],
+        stratify=stratify,
         random_state=int(step.seed),
     )
     with TemporaryDirectory() as tmp:
-        for name, frame in [("train", train), ("test", test)]:
-            frame.to_csv(Path(tmp) / f"{name}.csv", index=False)
-            for rel in frame[PATH_COLUMN]:
-                destination = Path(tmp) / name / rel
-                destination.parent.mkdir(parents=True, exist_ok=True)
-                copy2(data_root / rel, destination)
-        logger.log_artifacts(tmp, artifact_path="split")
+        train.to_csv(Path(tmp) / "train.csv", index=False)
+        test.to_csv(Path(tmp) / "test.csv", index=False)
+        logger.log_artifacts(tmp)
 
     log_provenance(
         config=config,
@@ -193,22 +225,23 @@ def _split(config: DictConfig, logger: MLFlowLogger) -> None:
     run = mlflow.active_run()
     assert run is not None  # @autolog guarantees an active run
     print(f"[split] dataset_verified={verification['verified']}")
-    print(f"[split] {len(train)} train / {len(test)} test files → artifacts/split/")
-    _pin_hint("split", run.info.run_id, "split")
+    print(f"[split] {len(train)} train / {len(test)} test files")
+    _pin_hint("split", run.info.run_id, "train.csv")
 
 
 def _embed(config: DictConfig, logger: MLFlowLogger) -> None:
-    """Load the split run's train files and reduce them to PCA embeddings."""
-    step = config.pipeline
-    split_uri = _resolve_upstream(config, "split", "split", "split")
-    split_dir = Path(_download(split_uri))
-    train = pd.read_csv(split_dir / "train.csv")
+    """Load the split run's train list and reduce the samples to PCA embeddings.
 
+    Reads the sample feature files from ``data_path`` (one feature row per
+    file — for WSI data, replace this step with your featurization).
+    """
+    step = config.pipeline
+    split_uri = _resolve_upstream(config, "split", "split", "train.csv")
+    train = pd.read_csv(_download(split_uri))
+
+    data_root = _data_root(config)
     features = np.vstack(
-        [
-            np.loadtxt(split_dir / "train" / rel, delimiter=",")
-            for rel in train[PATH_COLUMN]
-        ]
+        [np.loadtxt(data_root / rel, delimiter=",") for rel in train[PATH_COLUMN]]
     )
     embeddings = pd.DataFrame(
         PCA(

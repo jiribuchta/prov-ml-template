@@ -1,7 +1,14 @@
 # @package _global_
-# Build the manifest from the data folder (data_path) and register the dataset.
+# Build the manifest from the data and register the dataset.
 metadata:
   run_name: create
 
 pipeline:
   step: create
+  # Where the sample list comes from:
+  #   a table (csv/xlsx) whose path_column lists the sample files —
+  #     e.g. /mnt/data/.../cohort.xlsx
+  #   null = the data folder itself, one class subfolder per label
+  source: null
+  path_column: null # table mode: column with the sample paths (required)
+  label_column: null # table mode: column with integer labels; null = all 0
