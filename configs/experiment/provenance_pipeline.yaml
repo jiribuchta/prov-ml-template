@@ -15,5 +15,5 @@ dataset:
   # Pin upstream runs to freeze the chain (URIs are printed by each step);
   # null = automatically use the latest finished run of the upstream step.
   mlflow_uris:
-    split: null # e.g. runs:/<run_id>/train.csv
+    split: null # e.g. runs:/<run_id>/split
     embed: null # e.g. runs:/<run_id>/embeddings/train.csv

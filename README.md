@@ -9,14 +9,36 @@ The demo pipeline: **create → split → embed → cluster**
 
 | Step | What it does | Provenance shown |
 | --- | --- | --- |
-| `create` | generates a toy dataset (gaussian blobs) + `manifest.csv` | `register_dataset` → file sizes/mtimes in `Dataset_Registry` |
-| `split` | verifies the data on disk against the registration, splits train/test | `verify_dataset`, `dataset_verified` tag, split CSVs as artifacts |
-| `embed` | PCA-reduces the train split to 2-D embeddings | consumes the split run's artifact (`inputs`) |
+| `create` | builds `manifest.csv` from the files in `data_path` | `register_dataset` → file sizes/mtimes in `Dataset_Registry` |
+| `split` | verifies the data on disk against the registration, splits the **files** into `split/train/` + `split/test/` | `verify_dataset`, `dataset_verified` tag, the split folders as artifacts |
+| `embed` | PCA-reduces the split run's train files to 2-D embeddings | consumes the split run's artifact (`inputs`) — no `data_path` needed |
 | `cluster` | k-means + adjusted Rand index vs ground truth | consumes the embed run's artifact (`inputs`) |
 
 Each step is one MLflow run, tagged `step=<name>`. Downstream steps find their
 upstream via `dataset.mlflow_uris` in the config (pinned `runs:/...` URI), or
 automatically use the latest finished run of that step.
+
+## Data layout
+
+Point `data_path` at a folder with one CSV file per sample, grouped in one
+subfolder per class (the sorted subfolder names become the integer labels;
+filenames must be unique across the whole folder since the MLflow dataset
+registry keys files by name):
+
+```
+<data_path>/
+├── class_0/
+│   ├── class_0_0000.csv    # one row of feature values per file
+│   └── ...
+├── class_1/
+│   └── ...
+```
+
+No data at hand? Generate exactly this layout:
+
+```bash
+uv run python scripts/make_demo_data.py --out data/demo
+```
 
 ## Setup
 
@@ -39,7 +61,7 @@ organization='RationAI', lead_name='Prof. Lead', lead_email='lead@example.org')"
 Each command is one step; run them in order:
 
 ```bash
-uv run python -m pipeline pipeline=create  +experiment=provenance_pipeline
+uv run python -m pipeline pipeline=create  +experiment=provenance_pipeline data_path=/path/to/your/data
 uv run python -m pipeline pipeline=split   +experiment=provenance_pipeline
 uv run python -m pipeline pipeline=embed   +experiment=provenance_pipeline
 uv run python -m pipeline pipeline=cluster +experiment=provenance_pipeline
@@ -75,8 +97,9 @@ upstream step. To freeze the chain to specific runs, pin them in
     limits, image) when running as a kube-job.
   - *Params*: the whole Hydra config (`cfg_*`, interpolations resolved) plus
     per-split sample counts.
-  - *Artifacts*: `train.csv`/`test.csv`, `embeddings/`, `cluster/`, the frozen
-    requirements, the Hydra configs, and `console.log` (stdout capture).
+  - *Artifacts*: `split/train/`, `split/test/` (the actual files),
+    `embeddings/`, `cluster/`, the frozen requirements, the Hydra configs,
+    and `console.log` (stdout capture).
   - `embed`/`cluster` runs list their upstream under the `input_uris` tag.
 
 ## Running on the cluster

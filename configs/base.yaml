@@ -3,8 +3,9 @@ defaults:
   - logger: mlflow
   - _self_
 
-# Where the raw sample files + manifest.csv live (overridden per environment).
-data_path: data/toy-blobs
+# Folder with the data: <data_path>/<class>/<sample>.csv, one feature row
+# per file (see scripts/make_demo_data.py for an example layout).
+data_path: data/demo
 
 metadata:
   experiment_name: ??? # MLflow experiment all pipeline steps log to

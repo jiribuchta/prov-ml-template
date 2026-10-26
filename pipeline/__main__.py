@@ -3,12 +3,14 @@
 Every step runs as an MLflow run (mlkit ``@autolog``) and records its
 provenance via [rationai-provenance](https://github.com/RationAI/provenance):
 
-* **create**  — generate a toy dataset on disk and register it
+* **create**  — build a manifest from the sample files in ``data_path``
+  (``<data_path>/<class>/<sample>.csv``) and register it
   (``register_dataset``: file sizes/mtimes → ``Dataset_Registry``).
 * **split**   — verify the data on disk against the registration
-  (``verify_dataset``), then split it; the split CSVs become run artifacts.
-* **embed**   — reduce the train split to PCA embeddings; consumes the
-  split run's artifact.
+  (``verify_dataset``), then split the FILES into train/test folders
+  (copied into the run's ``split/`` artifact, class layout preserved).
+* **embed**   — reduce the split run's train FILES to PCA embeddings;
+  consumes the split run's artifact.
 * **cluster** — k-means on the embeddings + adjusted Rand index vs the
   ground truth; consumes the embed run's artifact.
 
@@ -27,6 +29,7 @@ Run with::
 from __future__ import annotations
 
 from pathlib import Path
+from shutil import copy2
 from tempfile import TemporaryDirectory
 from typing import TYPE_CHECKING, Any
 
@@ -39,7 +42,6 @@ from rationai.mlkit import autolog
 from rationai.mlkit.lightning.loggers import MLFlowLogger
 from rationai.provenance import log_provenance, register_dataset, verify_dataset
 from sklearn.cluster import KMeans
-from sklearn.datasets import make_blobs
 from sklearn.decomposition import PCA
 from sklearn.metrics import adjusted_rand_score
 from sklearn.model_selection import train_test_split
@@ -105,25 +107,33 @@ def _pin_hint(key: str, run_id: str, artifact: str) -> None:
 
 
 def _create(config: DictConfig, logger: MLFlowLogger) -> None:
-    """Generate gaussian-blob samples + manifest and register the dataset."""
+    """Build a manifest from a data folder and register the dataset.
+
+    Expected layout (one feature vector per CSV file, one class per
+    subfolder — sorted subfolder names map to the integer labels the
+    provenance manifest requires)::
+
+        <data_path>/<class>/<sample>.csv
+    """
     del logger  # the registration run is managed by register_dataset
-    step = config.pipeline
 
     data_root = _data_root(config)
-    data_root.mkdir(parents=True, exist_ok=True)
+    files = sorted(data_root.glob("*/*.csv"))
+    if not files:
+        raise FileNotFoundError(
+            f"No sample files in '{data_root}' — expected the layout "
+            "<data_path>/<class>/<sample>.csv (one feature row per file)."
+        )
+    classes = sorted({f.parent.name for f in files})
+    class_index = {name: i for i, name in enumerate(classes)}
 
-    features, labels = make_blobs(
-        n_samples=int(step.n_samples),
-        n_features=int(step.n_features),
-        centers=int(step.centers),
-        random_state=int(step.seed),
+    manifest = pd.DataFrame(
+        {
+            PATH_COLUMN: [str(f.relative_to(data_root)) for f in files],
+            LABEL_COLUMN: [class_index[f.parent.name] for f in files],
+        }
     )
-    rows = []
-    for i, (vector, label) in enumerate(zip(features, labels, strict=True)):
-        name = f"sample_{i:04d}.csv"  # unique: the registry keys files by name
-        np.savetxt(data_root / name, vector.reshape(1, -1), delimiter=",")
-        rows.append({PATH_COLUMN: name, LABEL_COLUMN: int(label)})
-    pd.DataFrame(rows).to_csv(data_root / "manifest.csv", index=False)
+    manifest.to_csv(data_root / "manifest.csv", index=False)
 
     dataset = config.dataset
     log_provenance(config=config)
@@ -132,11 +142,18 @@ def _create(config: DictConfig, logger: MLFlowLogger) -> None:
         dataset_name=str(dataset.name),
         version=str(dataset.version),
     )
-    print(f"[create] wrote {len(rows)} samples + manifest → {data_root}")
+    print(f"[create] {len(files)} samples in {len(classes)} classes → registered")
+    print(f"[create] classes: {class_index}")
 
 
 def _split(config: DictConfig, logger: MLFlowLogger) -> None:
-    """Verify the dataset against MLflow, then split it into train/test."""
+    """Verify the dataset, then split the FILES into train/test folders.
+
+    Copies each sample file into ``split/train/`` or ``split/test/``
+    (keeping the class-subfolder layout) and writes the corresponding
+    ``train.csv``/``test.csv`` manifests — all logged as run artifacts, so
+    downstream steps no longer need the original data folder.
+    """
     step = config.pipeline
     data_root = _data_root(config)
     manifest_path = data_root / "manifest.csv"
@@ -159,9 +176,13 @@ def _split(config: DictConfig, logger: MLFlowLogger) -> None:
         random_state=int(step.seed),
     )
     with TemporaryDirectory() as tmp:
-        train.to_csv(Path(tmp) / "train.csv", index=False)
-        test.to_csv(Path(tmp) / "test.csv", index=False)
-        logger.log_artifacts(tmp)
+        for name, frame in [("train", train), ("test", test)]:
+            frame.to_csv(Path(tmp) / f"{name}.csv", index=False)
+            for rel in frame[PATH_COLUMN]:
+                destination = Path(tmp) / name / rel
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                copy2(data_root / rel, destination)
+        logger.log_artifacts(tmp, artifact_path="split")
 
     log_provenance(
         config=config,
@@ -172,18 +193,22 @@ def _split(config: DictConfig, logger: MLFlowLogger) -> None:
     run = mlflow.active_run()
     assert run is not None  # @autolog guarantees an active run
     print(f"[split] dataset_verified={verification['verified']}")
-    _pin_hint("split", run.info.run_id, "train.csv")
+    print(f"[split] {len(train)} train / {len(test)} test files → artifacts/split/")
+    _pin_hint("split", run.info.run_id, "split")
 
 
 def _embed(config: DictConfig, logger: MLFlowLogger) -> None:
-    """Load the split run's train set and reduce it to PCA embeddings."""
+    """Load the split run's train files and reduce them to PCA embeddings."""
     step = config.pipeline
-    split_uri = _resolve_upstream(config, "split", "split", "train.csv")
-    train = pd.read_csv(_download(split_uri))
+    split_uri = _resolve_upstream(config, "split", "split", "split")
+    split_dir = Path(_download(split_uri))
+    train = pd.read_csv(split_dir / "train.csv")
 
-    data_root = _data_root(config)
     features = np.vstack(
-        [np.loadtxt(data_root / row, delimiter=",") for row in train[PATH_COLUMN]]
+        [
+            np.loadtxt(split_dir / "train" / rel, delimiter=",")
+            for rel in train[PATH_COLUMN]
+        ]
     )
     embeddings = pd.DataFrame(
         PCA(
