@@ -56,6 +56,9 @@ def submit_steps(steps: list[str], cpu: int = 2, memory: str = "4Gi") -> None:
             f"git clone {REPO_URL} workdir",
             "cd workdir",
             f"git checkout {BRANCH}",
+            # the job runs the pipeline, not job submission — never refresh
+            # the kube-jobs git source (private GitLab, unreachable in-cluster)
+            "export UV_FROZEN=1",
             "uv sync",
             "export PYTHONUNBUFFERED=1",
             *[
