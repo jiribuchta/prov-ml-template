@@ -517,7 +517,7 @@ mlflow.log_param("data_path", ...)      <span class="c">❌ a path string — no
           <span><b style="color:var(--good)">👤</b> per analysis · MLflow run</span></div>
         <div class="arrow">→</div>
         <div class="step"><span class="ico">🧬</span><b>featurize</b>
-          <span>features in a folder — registered the same way</span>
+          <span style="color:var(--good); font-weight:600">features in a folder — registered the same way</span>
           <span><b style="color:var(--good)">👤</b> per analysis · MLflow run</span></div>
         <div class="arrow">→</div>
         <div class="step"><span class="ico">🧠</span><b>mlkit train</b>
@@ -531,7 +531,10 @@ mlflow.log_param("data_path", ...)      <span class="c">❌ a path string — no
       <div style="text-align:center; color:var(--dim); font-size:13.5px; margin:12px 0">when you have the final model ▼</div>
       <div style="display:flex; gap:6px">
         <div class="step" style="flex:1; border-style:dashed; border-color:var(--accent)"><span class="ico">📜</span><b>finalization script</b>
-          <span>one call on the final run — walks the whole chain through the pins</span>
+          <span>one call on the final run — walks the whole chain through the pins, then:</span>
+          <span>🏷️ marks the used images <code>provenance_needed</code> in Harbor</span>
+          <span>🧾 creates the provenance</span>
+          <span>🏆 marks the model <b>final</b> in MLflow</span>
           <span><b style="color:var(--good)">👤</b> you run it · <span class="badge new">COMING TO THE LIB</span></span></div>
         <div class="arrow">→</div>
         <div class="step" style="flex:1; border-color:#2f4a28"><span class="ico">🏛️</span><b>PROV storage</b>
@@ -583,8 +586,6 @@ mlflow.log_param("data_path", ...)      <span class="c">❌ a path string — no
             <h3 style="margin-top:0">🩹 Real (WSI) data</h3>
             <p style="font-size:14px">• Registration &amp; split work on any file type (<code>.mrxs</code>, <code>.svs</code>…).</p>
             <p style="font-size:14px">• <code>embed_dataset</code>/<code>learn</code> expect per-sample <b>feature files</b> — insert your own WSI featurization step there.</p>
-            <p style="font-size:14px; color:var(--good); font-weight:600">⚠️ the features must be <b>registered too</b> —
-            same <code>register_dataset</code> call over the features folder · verified at training like any data.</p>
           </div>
         </div>
       </div>
