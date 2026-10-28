@@ -164,6 +164,32 @@ The dataset itself is defined by its `Dataset_Registry` run: `dataset.run_id`
 (required) is the `[hint]` line printed by `register_dataset` — a config
 always names the exact dataset it consumed.
 
+## Training on the splits with mlkit
+
+To train on this pipeline's output with the standard RationAI stack
+(rationai-mlkit), you write **no provenance code at all** — the pipeline
+steps above already call `log_provenance` themselves, and the training run
+gets its provenance from the mlkit `@autolog` decorator (already on
+`main`) plus one callback in the trainer config:
+
+```yaml
+trainer:
+  callbacks:
+    - _target_: rationai.mlkit.lightning.callbacks.ProvenanceCallback
+      fail_fast: true
+      split_uris:                       # ← the bridge to this pipeline
+        train: <split run artifact_uri>/train.csv
+        test:  <split run artifact_uri>/test.csv
+```
+
+With `split_uris`, training **references your split run's artifacts**
+instead of recomputing a split — the two runs chain in MLflow.
+
+One form to know: use the split run's `artifact_uri` (from the MLflow UI, or
+`mlflow.get_run("<run_id>").info.artifact_uri`), not the `runs:/...` form
+the `[hint]` lines print — the callback only downloads
+`mlflow-artifacts:/...` URIs and treats anything else as a local path.
+
 ## What to look for in the MLflow UI
 
 - **Dataset registration** (`Dataset_Registry` experiment): a run per dataset
