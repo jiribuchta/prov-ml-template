@@ -412,7 +412,7 @@ print(register_dataset('/mnt/data/.../mammaprint/slides.csv',
 <span class="k">def</span> <span class="p">main</span>(config, logger: MLFlowLogger):
     <span class="k">for</span> slide <span class="k">in</span> train[<span class="p">"wsi_path"</span>]:
         save(featurize(slide), <span class="p">f"features/{stem(slide)}.npz"</span>)  <span class="c"># costly</span>
-    features.to_csv(<span class="p">"features.csv"</span>, index=<span class="k">False</span>)   <span class="c"># feature_path — the file list</span>
+    features.to_csv(<span class="p">"features.csv"</span>, index=<span class="k">False</span>)   <span class="c"># feature_path list</span>
 
 <span class="c"># embeddings are data → the same registration, as a second call:</span>
 run_id = register_dataset(
