@@ -124,49 +124,36 @@
     <!-- 2 · part 1: jobs -->
     <section class="slide">
       <div class="part"><b>PART 1 · KUBE-JOBS</b><span>what we changed</span></div>
-      <h2>kube-jobs updated — it knows who you are</h2>
+      <h2>kube-jobs updated</h2>
       <div class="cols">
         <div>
           <div class="card" style="border-color:#2f4a28">
-            <h3 style="margin-top:0">👤 You never specify your username</h3>
-            <p style="font-size:14px">It is taken from your <b>kube config</b> — kube-jobs asks the
-            Kubernetes API who you are. Inside the job it becomes <code>JOB_USER</code> /
-            <code>MLFLOW_TRACKING_USERNAME</code>: the <b>exact name provenance looks runs up by</b>,
-            with zero configuration.</p>
+            <h3 style="margin-top:0">👤 Username from your kube config</h3>
+            <p style="font-size:14px">Never specified — inside the job it is <code>JOB_USER</code>:
+            the name provenance looks you up by.</p>
           </div>
           <div class="card" style="margin-top:12px">
-            <h3 style="margin-top:0">🏷️ Your username is appended to the job name</h3>
-            <p style="font-size:14px">Whatever job name you submit gets <code>-&lt;username&gt;</code>
-            appended, and the job is labeled <code>created_by</code> — so <b>logs and deletion</b>
-            are unambiguous. kube-jobs prints the exact name it pushed to the cluster:</p>
+            <h3 style="margin-top:0">🏷️ Job name gets <code>-&lt;username&gt;</code></h3>
+            <p style="font-size:14px">Logs and deletion unambiguous — it prints the exact name:</p>
             <pre><span class="adam">Job train-mammaprint-jiri-buchta created 🚀</span></pre>
           </div>
         </div>
         <div>
           <div class="card">
-            <h3 style="margin-top:0">🔤 DNS-1123, enforced</h3>
-            <p style="font-size:14px">k8s names allow no underscores or capitals — username and step
-            name are normalized (lowercase, <code>_</code> → <code>-</code>) and validated
-            before the job is submitted.</p>
+            <h3 style="margin-top:0">🔤 DNS-1123 enforced</h3>
+            <p style="font-size:14px">Lowercase, <code>_</code> → <code>-</code>, validated on submission.</p>
           </div>
           <div class="card" style="margin-top:12px">
-            <h3 style="margin-top:0">🆕 New env variables in every job</h3>
-            <p style="font-size:14px"><code>JOB_NAME · JOB_USER · JOB_IMAGE · JOB_CLUSTER ·
-            JOB_CPU_REQUEST/LIMIT · JOB_MEMORY_REQUEST/LIMIT · JOB_SHM · JOB_GPU</code> — what the job
-            requested. Provenance reads them, so every MLflow run records the cluster, image and
-            resources it ran on.</p>
+            <h3 style="margin-top:0">🆕 New env variables</h3>
+            <p style="font-size:14px"><code>JOB_USER · JOB_IMAGE · JOB_CLUSTER · JOB_CPU/MEMORY_REQUEST/LIMIT ·
+            JOB_SHM · JOB_GPU</code> — recorded on every MLflow run.</p>
           </div>
         </div>
       </div>
       <div class="card" style="margin-top:14px; border-color:#4a3d28">
-        <p style="font-size:14px; margin:4px 0">⚠️ <b style="color:var(--warn)">Essential for everyone:</b> update your
-        kube-jobs library — the identity, job names and env variables above come from the new
-        version: <code>uv lock --upgrade-package rationai-kube-jobs &amp;&amp; uv sync</code>.</p>
-      </div>
-      <div class="card" style="margin-top:12px">
-        <p style="font-size:14px; margin:4px 0">📌 Every step ends its job log with its printed
-        <code>[hint]</code> pin lines — copy them into the next step's config, so a config always
-        names the exact runs it consumed.</p>
+        <p style="font-size:14px; margin:4px 0">⚠️ <b style="color:var(--warn)">Everyone:</b> update your
+        kube-jobs — <code>uv lock --upgrade-package rationai-kube-jobs &amp;&amp; uv sync</code>.
+        📌 Steps end their logs with <code>[hint]</code> pins — copy into the next step's config.</p>
       </div>
     </section>
 
