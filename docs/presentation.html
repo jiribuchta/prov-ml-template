@@ -128,14 +128,14 @@
       <div class="cols">
         <div style="flex:1.2">
           <div class="term">
-            <div class="term-bar"><i></i><i></i><i></i><em>terminal</em></div>
-            <pre><span class="c"># once: uv sync --extra job · fill the TODOs in scripts/_submit.py</span>
-<span class="you">$</span> uv run python scripts/split_dataset.py  <span class="c">→ job provenance-split-dataset</span>
-<span class="you">$</span> uv run python scripts/embed_dataset.py  <span class="c">→ job provenance-embed-dataset</span>
-<span class="you">$</span> uv run python scripts/learn.py          <span class="c">→ job provenance-learn</span>
+            <div class="term-bar"><i></i><i></i><i></i><em>pipeline step → kube-job name</em></div>
+            <pre><span class="c"># one job per pipeline step — you submit it as any other job</span>
+<span class="k">split_dataset</span>  →  <span class="p">provenance-split-dataset</span>
+<span class="k">embed_dataset</span>  →  <span class="p">provenance-embed-dataset</span>
+<span class="k">learn</span>          →  <span class="p">provenance-learn</span>
 
-<span class="c"># switch dataset — one line, nothing else:</span>
-<span class="k">EXPERIMENT</span> = <span class="p">"mammaprint"</span>   <span class="c"># scripts/_submit.py</span></pre>
+<span class="c"># switch dataset — one line:</span>
+<span class="k">EXPERIMENT</span> = <span class="p">"mammaprint"</span></pre>
           </div>
         </div>
         <div>
@@ -146,15 +146,15 @@
           </div>
           <div class="card" style="margin-top:12px">
             <h3 style="margin-top:0">🔁 Rerunnable by default</h3>
-            <p style="font-size:14px">The previous job is auto-deleted before submitting
-            (submit_job rejects existing names) — rerun a step as often as you like.</p>
+            <p style="font-size:14px">The previous job is auto-deleted before submitting —
+            rerun a step as often as you like.</p>
           </div>
         </div>
       </div>
       <div class="card" style="margin-top:14px">
         <p style="font-size:14px; margin:4px 0">📦 <b>Inside every job:</b> <code>git clone</code> + checkout →
         <code>UV_FROZEN=1</code> + <code>uv sync</code> (never refresh the kube-jobs source in-cluster) →
-        run the step · storage mounts for <code>DATA</code> and <code>PROJECTS</code> · CPU/memory from the script.</p>
+        run the step · storage mounts for <code>DATA</code> and <code>PROJECTS</code> · CPU/memory limits per step.</p>
       </div>
     </section>
 
@@ -178,16 +178,15 @@
         </div>
         <div>
           <div class="term">
-            <div class="term-bar"><i></i><i></i><i></i><em>terminal</em></div>
-            <pre><span class="c"># or the whole chain in one job:</span>
-<span class="you">$</span> uv run python scripts/submit_pipeline.py</pre>
+            <div class="term-bar"><i></i><i></i><i></i><em>one job, the whole chain</em></div>
+            <pre><span class="c"># or the whole chain as one job:</span>
+<span class="k">split</span> → <span class="k">embed</span> → <span class="k">learn</span>   <span class="c">→ job provenance-chain</span></pre>
           </div>
           <div class="card" style="margin-top:12px">
             <h3 style="margin-top:0">🔗 The chain forwards its own pins</h3>
-            <p style="font-size:14px">Each step tees to <code>job.log</code>; the next command gets
-            <code>$(grep '^\s+dataset\.' job.log)</code> — the printed <code>[hint]</code> pins
-            are passed on automatically, under <code>set -eo pipefail</code>.
-            A fresh chain runs end-to-end <b>with nothing pasted</b>.</p>
+            <p style="font-size:14px">Each step prints its <code>[hint]</code> pins; the next step
+            consumes <b>exactly those</b> — a fresh chain runs end-to-end
+            <b>with nothing pasted</b>.</p>
           </div>
         </div>
       </div>
@@ -403,7 +402,7 @@
           </div>
           <div class="card" style="margin-top:12px">
             <p style="font-size:14px; margin:4px 0">☁️ <b>Same on the cluster</b> (part 1):
-            <code>uv run python scripts/split_dataset.py</code> — same pin, same YAML.
+            the same step as a kube-job — same pin, same YAML.
             🔁 Rerun any time — the pin decides, not the order.</p>
           </div>
         </div>
