@@ -5,8 +5,10 @@ metadata:
 
 pipeline:
   step: create_user
-  # TODO: your identity — linked to every run you submit
-  username: jiri_buchta
+  # TODO: your identity — linked to every run you submit.
+  # username: null = JOB_USER env / kube-config username (what provenance
+  # looks runs up by) — set it only if you have neither.
+  username: null
   real_name: Jiří Buchta
   email: 524981@mail.muni.cz
   organization: RationAI

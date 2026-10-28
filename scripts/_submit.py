@@ -17,9 +17,8 @@ import time
 
 from kube_jobs import storage, submit_job
 from kube_jobs.cli.job import delete_job
-from kube_jobs.constants import CLUSTER
-from kube_jobs.resolve_kube_config import load_kube_config
-from kubernetes import client
+
+from pipeline.common import kube_username
 
 
 REPO_URL = "https://github.com/jiribuchta/prov-ml-template.git"
@@ -28,18 +27,7 @@ BRANCH = "feature/provenance-pipeline"
 IMAGE = "cerit.io/jiri_buchta/base-test-cuda:0.0.7"  # TODO: your image
 
 # The experiment config the jobs run: configs/experiment/<EXPERIMENT>.yaml
-EXPERIMENT = "provenance_pipeline"
-
-
-def _username() -> str:
-    """Cluster username from the kube config (as submit_job resolves it)."""
-    load_kube_config(context=CLUSTER)
-    review = client.AuthenticationV1Api().create_self_subject_review(
-        body=client.V1SelfSubjectReview()
-    )
-    assert review.status and review.status.user_info and review.status.user_info.extra
-    username = str(review.status.user_info.extra["username"][0]).split("@")[0]
-    return username.lower().replace(" ", "-").replace("_", "-")
+EXPERIMENT = "mammaprint"
 
 
 def submit_steps(steps: list[str], cpu: int = 2, memory: str = "4Gi") -> None:
@@ -49,7 +37,7 @@ def submit_steps(steps: list[str], cpu: int = 2, memory: str = "4Gi") -> None:
     job_name = "provenance-pipeline" if len(steps) > 1 else f"provenance-{step}"
     # rerunnable: remove the previous run's job (submit_job 409s on existing
     # names; it suffixes the job name with the username itself)
-    delete_job(f"{job_name}-{_username()}", public=False)
+    delete_job(f"{job_name}-{kube_username()}", public=False)
     time.sleep(5)
     submit_job(
         job_name=job_name,

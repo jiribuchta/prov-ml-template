@@ -96,8 +96,11 @@ Register yourself once (one `User_Registry` run, links all your runs to you):
 uv run python -m pipeline pipeline=create_user +experiment=provenance_pipeline
 ```
 
-The identity fields (username, real name, email, organization, lead) live in
+The identity fields (real name, email, organization, lead) live in
 [`configs/pipeline/create_user.yaml`](configs/pipeline/create_user.yaml).
+The username defaults to your kube-config username (`JOB_USER` in-cluster) —
+the exact name provenance looks runs up by, so cluster runs link to you
+automatically (set it only if you have no kube config).
 
 ## Run the pipeline
 

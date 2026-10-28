@@ -6,73 +6,102 @@
 <title>prov-ml-template — what you do, and what changed</title>
 <style>
   :root {
-    --bg: #0f1117;
-    --panel: #161a23;
-    --ink: #e8eaf0;
-    --dim: #9aa2b5;
-    --accent: #7aa2f7;
-    --good: #9ece6a;
-    --warn: #e0af68;
-    --line: #262b38;
-    --code-bg: #0b0d12;
+    --bg: #0f1117; --panel: #161a23; --panel2: #1b2030;
+    --ink: #e8eaf0; --dim: #9aa2b5;
+    --accent: #7aa2f7; --good: #9ece6a; --warn: #e0af68;
+    --line: #262b38; --code-bg: #0b0d12;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; }
-  body {
-    background: var(--bg); color: var(--ink);
-    font: 16px/1.55 "Segoe UI", system-ui, -apple-system, sans-serif;
-    overflow: hidden;
-  }
+  body { background: var(--bg); color: var(--ink); overflow: hidden;
+         font: 16px/1.5 "Segoe UI", system-ui, -apple-system, sans-serif; }
   #deck { height: 100%; display: flex; flex-direction: column; }
   #progress { height: 4px; background: var(--line); flex: none; }
-  #progress > div { height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+  #progress > div { height: 100%; width: 0; background: var(--accent); transition: width .25s; }
   #stage { flex: 1; position: relative; }
-  .slide {
-    position: absolute; inset: 0; display: none;
-    padding: 48px 72px 72px; overflow-y: auto;
-  }
+  .slide { position: absolute; inset: 0; display: none; padding: 42px 64px 64px; overflow-y: auto; }
   .slide.active { display: block; }
-  h1 { font-size: 44px; margin: 24px 0 8px; }
-  h2 { font-size: 30px; margin: 0 0 18px; color: var(--accent); }
-  h3 { font-size: 19px; margin: 20px 0 8px; }
-  p, li { color: var(--ink); max-width: 72ch; }
-  .sub { color: var(--dim); font-size: 20px; margin-top: 18px; }
+  .slide.active > * { animation: rise .45s ease both; }
+  .slide.active > *:nth-child(2) { animation-delay: .08s; }
+  .slide.active > *:nth-child(3) { animation-delay: .16s; }
+  .slide.active > *:nth-child(4) { animation-delay: .24s; }
+  .slide.active > *:nth-child(5) { animation-delay: .32s; }
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+  h1 { font-size: 46px; margin: 20px 0 6px; }
+  h2 { font-size: 28px; margin: 0 0 16px; color: var(--accent); }
+  h3 { font-size: 17px; margin: 14px 0 8px; }
+  p, li { color: var(--ink); }
+  .sub { color: var(--dim); font-size: 19px; margin-top: 10px; }
   code, pre { font-family: "Cascadia Code", ui-monospace, Consolas, monospace; }
-  code { background: var(--code-bg); border: 1px solid var(--line); padding: 1px 6px; border-radius: 4px; font-size: 14px; }
-  pre {
-    background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px;
-    padding: 12px 16px; overflow-x: auto; font-size: 14px; line-height: 1.5; margin: 8px 0;
-  }
-  pre .c { color: #565f89; } /* comment */
-  pre .k { color: #bb9af7; } /* key */
-  table { border-collapse: collapse; width: 100%; font-size: 15px; }
-  th, td { border: 1px solid var(--line); padding: 8px 14px; text-align: left; vertical-align: top; }
-  th { background: var(--panel); color: var(--accent); }
-  td { color: var(--ink); }
-  .flow { display: flex; align-items: stretch; gap: 8px; margin: 26px 0; }
-  .step {
-    flex: 1; background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
-    padding: 12px 10px; text-align: center;
-  }
-  .step b { display: block; font-size: 15px; color: var(--accent); }
-  .step span { font-size: 12.5px; color: var(--dim); display: block; margin-top: 4px; }
-  .arrow { align-self: center; color: var(--dim); font-size: 22px; flex: none; }
-  .cols { display: flex; gap: 28px; }
-  .cols > div { flex: 1; }
-  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 18px; margin: 10px 0; }
-  .card h3 { margin-top: 0; }
-  .badge { display: inline-block; border-radius: 99px; padding: 0 10px; font-size: 12px; font-weight: 600; }
+  code { background: var(--code-bg); border: 1px solid var(--line); padding: 1px 6px; border-radius: 4px; font-size: 13.5px; }
+  pre { background: var(--code-bg); border: 1px solid var(--line); border-radius: 0 0 10px 10px;
+        padding: 10px 14px; overflow-x: auto; font-size: 13.5px; line-height: 1.55; margin: 0; }
+  pre .c { color: #565f89; } pre .k { color: #bb9af7; } pre .p { color: #7aa2f7; }
+
+  /* step flow */
+  .flow { display: flex; align-items: stretch; gap: 6px; margin: 22px 0 14px; }
+  .step { flex: 1; background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+          padding: 14px 8px 10px; text-align: center; position: relative; }
+  .step .ico { font-size: 30px; display: block; }
+  .step b { display: block; font-size: 13.5px; color: var(--accent); margin-top: 6px; font-family: "Cascadia Code", ui-monospace, Consolas, monospace; }
+  .step span { font-size: 12px; color: var(--dim); display: block; margin-top: 4px; }
+  .arrow { align-self: center; color: var(--dim); font-size: 20px; flex: none; }
+
+  /* cards, chips, badges */
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; }
+  .cols { display: flex; gap: 22px; } .cols > div { flex: 1; min-width: 0; }
+  .chip { display: inline-flex; align-items: center; gap: 7px; background: var(--panel2); border: 1px solid var(--line);
+          border-radius: 99px; padding: 4px 14px; font-size: 13.5px; margin: 4px 6px 4px 0; }
+  .badge { display: inline-block; border-radius: 99px; padding: 0 9px; font-size: 11px; font-weight: 700; letter-spacing: .4px; }
   .badge.new { background: #1f2b1c; color: var(--good); border: 1px solid #2f4a28; }
   .badge.old { background: #2b251c; color: var(--warn); border: 1px solid #4a3d28; }
-  .num { color: var(--accent); font-weight: 700; margin-right: 10px; }
-  #hud {
-    position: fixed; bottom: 14px; right: 20px; display: flex; gap: 10px; align-items: center;
-    color: var(--dim); font-size: 13px; user-select: none; z-index: 10;
-  }
-  #hud button {
-    background: var(--panel); color: var(--ink); border: 1px solid var(--line);
-    border-radius: 6px; padding: 4px 12px; font-size: 15px; cursor: pointer;
-  }
+
+  /* terminal window */
+  .term { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--code-bg); }
+  .term-bar { display: flex; align-items: center; gap: 6px; background: var(--panel); padding: 7px 12px;
+              font-size: 12.5px; color: var(--dim); border-bottom: 1px solid var(--line); }
+  .term-bar i { width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
+  .term-bar i:nth-child(1) { background: #f7768e; } .term-bar i:nth-child(2) { background: #e0af68; } .term-bar i:nth-child(3) { background: #9ece6a; }
+  .term-bar em { margin-left: 8px; font-style: normal; }
+
+  /* file tree */
+  .tree { font-family: "Cascadia Code", ui-monospace, Consolas, monospace; font-size: 13.5px; line-height: 1.8;
+          background: var(--code-bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin-top: 8px; }
+  .tree .hi { color: var(--good); } .tree .dim { color: var(--dim); }
+  .t1 { padding-left: 22px; } .t2 { padding-left: 44px; }
+
+  /* numbered stepper */
+  .steps-big { counter-reset: n; display: flex; flex-direction: column; gap: 10px; }
+  .big { display: flex; gap: 14px; align-items: flex-start; background: var(--panel); border: 1px solid var(--line);
+         border-radius: 12px; padding: 12px 16px; }
+  .big::before { counter-increment: n; content: counter(n); flex: none; width: 34px; height: 34px; border-radius: 50%;
+                 background: var(--accent); color: #0f1117; font-weight: 800; display: flex; align-items: center;
+                 justify-content: center; font-size: 17px; }
+  .big b { color: var(--accent); }
+
+  /* before/after architecture */
+  .arch { border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+  .arch h3 { margin-top: 0; text-align: center; }
+  .arch.old { background: linear-gradient(180deg, #1d1a15, #161a23); border-color: #4a3d28; }
+  .arch.new { background: linear-gradient(180deg, #151d15, #161a23); border-color: #2f4a28; }
+  .box { border: 1px dashed var(--dim); border-radius: 10px; padding: 10px 12px; margin: 8px 0; text-align: center;
+         font-size: 13.5px; color: var(--dim); }
+  .box b { color: var(--ink); }
+  .mini { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; margin: 4px 2px;
+          display: inline-block; font-size: 12px; font-family: "Cascadia Code", ui-monospace, Consolas, monospace; }
+  .down { text-align: center; color: var(--dim); font-size: 18px; margin: 2px 0; }
+
+  /* run mock */
+  .run { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  .run h4 { margin: 0 0 8px; font-size: 14.5px; color: var(--accent); font-family: "Cascadia Code", ui-monospace, Consolas, monospace; }
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; font-size: 13px; }
+  .kv span { color: var(--dim); } .kv b { font-weight: 600; color: var(--ink); }
+
+  #hud { position: fixed; bottom: 14px; right: 20px; display: flex; gap: 10px; align-items: center;
+         color: var(--dim); font-size: 13px; user-select: none; z-index: 10; }
+  #hud button { background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 6px;
+                padding: 4px 12px; font-size: 15px; cursor: pointer; }
   #hud button:hover { border-color: var(--accent); }
   .footer-hint { position: fixed; bottom: 16px; left: 22px; color: var(--dim); font-size: 12.5px; }
 </style>
@@ -84,233 +113,274 @@
 
     <!-- 1 · title -->
     <section class="slide">
-      <h1>prov-ml-template</h1>
-      <p class="sub">What <b>you</b> must do to get your dataset through the pipeline —<br>
-      and how this differs from the current (monolithic) pipeline.</p>
-      <div class="card" style="max-width:640px">
-        <h3>One sentence</h3>
-        <p>Fill in <b>one YAML file per dataset</b>, then run <b>one command per step</b>
-        (locally or as a k8s job) — every step is a provenance-tracked MLflow run.</p>
+      <div style="text-align:center; margin-top:4vh">
+        <div style="font-size:56px; line-height:1">🧬</div>
+        <h1>prov-ml-template</h1>
+        <p class="sub">What <b>you</b> must do to get a dataset through the pipeline —<br>
+           and how it differs from the <b>mlkit-only</b> machine-learning template.</p>
+        <div class="flow" style="max-width:900px; margin:34px auto 6px">
+          <div class="step"><span class="ico">👤</span><b>create_user</b><span>one-time</span></div>
+          <div class="arrow">→</div>
+          <div class="step"><span class="ico">🗂️</span><b>register_dataset</b><span>in place</span></div>
+          <div class="arrow">→</div>
+          <div class="step"><span class="ico">✂️</span><b>split_dataset</b><span>file lists</span></div>
+          <div class="arrow">→</div>
+          <div class="step"><span class="ico">🧬</span><b>embed_dataset</b><span>PCA</span></div>
+          <div class="arrow">→</div>
+          <div class="step"><span class="ico">🧠</span><b>learn</b><span>k-means</span></div>
+        </div>
+        <p class="sub" style="font-size:15px">Fill in <b>one YAML per dataset</b> → run <b>one command per step</b> — every step is a provenance-tracked MLflow run.</p>
       </div>
-      <p class="sub" style="font-size:15px">← → to navigate · <code>git clone https://github.com/jiribuchta/prov-ml-template.git</code></p>
     </section>
 
     <!-- 2 · the pipeline -->
     <section class="slide">
-      <h2>The pipeline: five steps, five MLflow runs</h2>
+      <h2>Five steps · five modules · five MLflow runs</h2>
       <div class="flow">
-        <div class="step"><b>create_user</b><span>registers you in<br>User_Registry<br>(one-time)</span></div>
+        <div class="step"><span class="ico">👤</span><b>create_user</b><span>registers you in<br>User_Registry</span></div>
         <div class="arrow">→</div>
-        <div class="step"><b>register_dataset</b><span>registers your files<br>in place,<br>Dataset_Registry</span></div>
+        <div class="step"><span class="ico">🗂️</span><b>register_dataset</b><span>file sizes/mtimes →<br>Dataset_Registry</span></div>
         <div class="arrow">→</div>
-        <div class="step"><b>split_dataset</b><span>verifies the data,<br>train/test file lists</span></div>
+        <div class="step"><span class="ico">✂️</span><b>split_dataset</b><span>verifies data on disk,<br>train/test file lists</span></div>
         <div class="arrow">→</div>
-        <div class="step"><b>embed_dataset</b><span>PCA embeddings<br>(your featurizer goes here)</span></div>
+        <div class="step"><span class="ico">🧬</span><b>embed_dataset</b><span>PCA embeddings<br>(your featurizer here)</span></div>
         <div class="arrow">→</div>
-        <div class="step"><b>learn</b><span>k-means + ARI<br>vs ground truth</span></div>
+        <div class="step"><span class="ico">🧠</span><b>learn</b><span>k-means + ARI<br>vs ground truth</span></div>
       </div>
-      <ul>
-        <li>Each step is its own module (<code>pipeline/&lt;step&gt;.py</code>) and its own config
-            (<code>configs/pipeline/&lt;step&gt;.yaml</code>) — run <b>any step alone</b>.</li>
-        <li>Downstream steps find their upstream automatically (latest finished run of that step),
-            or via a pinned <code>runs:/...</code> URI in the experiment config.</li>
-        <li>Data is used <b>in place</b> — files stay where they are on the cluster,
-            nothing is copied or created.</li>
-      </ul>
+      <div class="cols">
+        <div class="card">
+          <h3 style="margin-top:0">📦 One module + config per step</h3>
+          <p style="font-size:14px"><code>pipeline/&lt;step&gt;.py</code> · <code>configs/pipeline/&lt;step&gt;.yaml</code><br>
+          Run <b>any step alone</b> — no all-or-nothing runs.</p>
+        </div>
+        <div class="card">
+          <h3 style="margin-top:0">🔗 Runs find each other</h3>
+          <p style="font-size:14px">Downstream steps use the <b>latest finished</b> upstream run, or a pinned
+          <code>runs:/…</code> URI in the experiment config — the chain stays traceable (<code>input_uris</code>).</p>
+        </div>
+        <div class="card">
+          <h3 style="margin-top:0">📍 Data stays in place</h3>
+          <p style="font-size:14px">Files stay where they are on the cluster — nothing is copied or created.
+          Only <code>manifest.csv</code> is written into <code>data_path</code>.</p>
+        </div>
+      </div>
     </section>
 
-    <!-- 3 · setup + create_user -->
+    <!-- 3 · setup -->
     <section class="slide">
-      <h2>What you must do — 1. setup (once)</h2>
-      <pre>
-<span class="c"># clone, enter, and create the environment</span>
-uv sync
+      <h2>What you must do — setup (once)</h2>
+      <div class="cols">
+        <div>
+          <div class="term">
+            <div class="term-bar"><i></i><i></i><i></i><em>terminal</em></div>
+            <pre><span class="c"># create the environment</span>
+<span class="p">$</span> uv sync
 
-<span class="c"># point the pipeline at your MLflow server + identify yourself</span>
-export MLFLOW_TRACKING_URI=...
-export MLFLOW_USER=...</pre>
-      <h3>Register yourself (once, first ever run)</h3>
-      <pre>
-<span class="c"># identity fields live in configs/pipeline/create_user.yaml — edit them first</span>
-uv run python -m pipeline pipeline=create_user +experiment=mammaprint</pre>
-      <p>One run in the <code>User_Registry</code> — links all your future runs to you.</p>
+<span class="c"># point at your MLflow server + identify yourself</span>
+<span class="p">$</span> export MLFLOW_TRACKING_URI=...
+<span class="p">$</span> export MLFLOW_USER=...</pre>
+          </div>
+        </div>
+        <div>
+          <div class="term">
+            <div class="term-bar"><i></i><i></i><i></i><em>terminal</em></div>
+            <pre><span class="c"># register yourself — once, ever</span>
+<span class="c"># username is automatic (kube config / JOB_USER);</span>
+<span class="c"># other identity: configs/pipeline/create_user.yaml</span>
+<span class="p">$</span> uv run python -m pipeline \
+      pipeline=create_user +experiment=mammaprint</pre>
+          </div>
+          <p style="font-size:14px; color:var(--dim); margin-top:10px">
+          One run in <code>User_Registry</code> — links all your future runs to you.
+          The username is the one kube-jobs uses (<code>JOB_USER</code>), so cluster runs link automatically.</p>
+        </div>
+      </div>
     </section>
 
     <!-- 4 · experiment config -->
     <section class="slide">
-      <h2>What you must do — 2. one YAML per dataset</h2>
-      <p>Copy the template to <code>configs/experiment/&lt;your-dataset&gt;.yaml</code> and fill in
-      the marked fields — this is the <b>only dataset-specific file</b>, versioned in git:</p>
+      <h2>What you must do — one YAML per dataset</h2>
       <div class="cols">
-        <div><pre>
-<span class="k">metadata:</span>
+        <div style="flex:1.25">
+          <div class="term">
+            <div class="term-bar"><i></i><i></i><i></i><em>configs/experiment/mammaprint.yaml</em></div>
+            <pre><span class="k">metadata:</span>
   experiment_name: Dataset Mammaprint
   description: dataset init
 
 <span class="k">data_path:</span> /mnt/data/MOU/breast/mammaprint
 
 <span class="k">pipeline:</span>
-  <span class="k">source:</span>  null        <span class="c"># or cohort.xlsx</span>
-  <span class="k">pattern:</span> '.*\.mrxs$'  <span class="c"># or null</span>
-  <span class="k">path_column:</span> null    <span class="c"># table mode only</span>
-  <span class="k">label_column:</span> null    <span class="c"># table mode only</span></pre></div>
-        <div><pre>
+  <span class="k">source:</span>  null          <span class="c"># or cohort.xlsx</span>
+  <span class="k">pattern:</span> '.*\.mrxs$'    <span class="c"># or null</span>
+  <span class="k">path_column:</span> null      <span class="c"># table mode only</span>
+  <span class="k">label_column:</span> null      <span class="c"># table mode only</span>
+
 <span class="k">dataset:</span>
   <span class="k">name:</span> mammaprint
   <span class="k">version:</span> 1.0.0
-  <span class="k">mlflow_uris:</span>          <span class="c"># pin to freeze</span>
-    <span class="k">split_dataset:</span> null   <span class="c"># the chain</span>
+  <span class="k">mlflow_uris:</span>            <span class="c"># pin = freeze chain</span>
+    <span class="k">split_dataset:</span> null
     <span class="k">embed_dataset:</span> null</pre>
-        <div class="card">
-          <p style="font-size:14.5px">Every step then runs with
-          <code>+experiment=mammaprint</code> — no more long CLI flag lists that
-          nobody can find again.</p>
-          <p style="font-size:14.5px">Second dataset later? Copy the file again, change the values.</p>
-        </div></div>
+          </div>
+        </div>
+        <div>
+          <div style="text-align:center; margin:6px 0 10px">
+            <div class="chip" style="font-size:15px; padding:8px 22px">📄 mammaprint.yaml</div>
+            <div class="down">↓ &nbsp;<span style="font-size:13px">+experiment=mammaprint</span>&nbsp; ↓</div>
+          </div>
+          <div style="text-align:center">
+            <span class="mini">👤 create_user</span><span class="mini">🗂️ register_dataset</span><span class="mini">✂️ split_dataset</span><span class="mini">🧬 embed_dataset</span><span class="mini">🧠 learn</span>
+          </div>
+          <div class="card" style="margin-top:14px">
+            <p style="font-size:14px; margin:6px 0">✅ The <b>only dataset-specific file</b> — versioned in git, instead of
+            long CLI flag lists nobody can find again.</p>
+            <p style="font-size:14px; margin:6px 0">✅ Second dataset later? <b>Copy the file</b>, change the values.</p>
+            <p style="font-size:14px; margin:6px 0">✅ On the cluster, jobs switch with one line:<br>
+            <code>EXPERIMENT = "mammaprint"</code> in <code>scripts/_submit.py</code></p>
+          </div>
+        </div>
       </div>
     </section>
 
     <!-- 5 · three input shapes -->
     <section class="slide">
-      <h2>What you must do — 3. point at your data</h2>
-      <p><code>register_dataset</code> accepts three input shapes
-      (<b>first match wins</b> — that's the whole configuration):</p>
+      <h2>Point at your data — three input shapes <span style="font-size:15px;color:var(--dim)">(first match wins)</span></h2>
       <div class="cols">
         <div class="card">
-          <h3>1. A cohort table <span class="badge old">already existed</span></h3>
-          <p style="font-size:14.5px">The csv/xlsx that usually ships with the data:</p>
-          <pre><span class="k">source:</span> cohort.xlsx
-<span class="k">path_column:</span> slide
-<span class="k">label_column:</span> label</pre>
-          <p style="font-size:14.5px">Paths absolute or relative to <code>data_path</code>.</p>
+          <h3 style="margin-top:0">📊 1 · Cohort table <span class="badge old">already existed</span></h3>
+          <p style="font-size:13.5px">The csv/xlsx that usually ships with the data:</p>
+          <div class="tree">📁 mammaprint/
+<div class="t1 hi">📄 cohort.xlsx</div>
+<div class="t1 dim">… slide files …</div></div>
+          <div style="margin-top:8px"><span class="chip"><code>source: cohort.xlsx</code></span><span class="chip"><code>path_column: slide</code></span><span class="chip"><code>label_column: label</code></span></div>
         </div>
         <div class="card">
-          <h3>2. A regex <span class="badge new">new</span></h3>
-          <p style="font-size:14.5px">Folder + "what to find" — manifest is built for you:</p>
-          <pre><span class="k">pattern:</span> '.*\.mrxs$'</pre>
-          <p style="font-size:14.5px">Classes from a named <code>label</code> group
-          (<code>'^(?P&lt;label&gt;\d+)/.*\.svs$'</code>) or from the parent folder.
-          Recursive; skips <code>manifest.csv</code> and hidden files.</p>
+          <h3 style="margin-top:0">🔎 2 · Regex <span class="badge new">NEW</span></h3>
+          <p style="font-size:13.5px">Folder + “what to find” — manifest is built for you:</p>
+          <div class="tree">📁 mammaprint/
+<div class="t1 hi">📄 s1.mrxs</div>
+<div class="t1 hi">📄 s2.mrxs</div>
+<div class="t1 dim">📂 s1_data/ &nbsp;<span class="dim">(skipped)</span></div></div>
+          <div style="margin-top:8px"><span class="chip"><code>pattern: '.*\.mrxs$'</code></span></div>
+          <p style="font-size:13px;color:var(--dim)">Classes: named <code>label</code> group
+          (<code>'^(?P&lt;label&gt;\d+)/.*\.svs$'</code>) or parent folder. Recursive.</p>
         </div>
         <div class="card">
-          <h3>3. The folder itself <span class="badge new">any file type</span></h3>
-          <p style="font-size:14.5px">One subfolder per class:</p>
-          <pre>data_path/
-├── class_0/s1.mrxs
-└── class_1/s2.mrxs</pre>
-          <p style="font-size:14.5px">Previously hardcoded to <code>*/*.csv</code> —
-          now any file type.</p>
+          <h3 style="margin-top:0">🌳 3 · Folder scan <span class="badge new">ANY FILE TYPE</span></h3>
+          <p style="font-size:13.5px">One subfolder per class:</p>
+          <div class="tree">📁 mammaprint/
+<div class="t1">📁 class_0/</div>
+<div class="t2 hi">📄 s1.mrxs</div>
+<div class="t1">📁 class_1/</div>
+<div class="t2 hi">📄 s2.mrxs</div></div>
+          <p style="font-size:13px;color:var(--dim)">Previously hardcoded to <code>*/*.csv</code> — now any file type.</p>
         </div>
       </div>
     </section>
 
     <!-- 6 · run it -->
     <section class="slide">
-      <h2>What you must do — 4. run the steps</h2>
+      <h2>Run the steps</h2>
       <div class="cols">
         <div>
-          <h3>Locally, in order</h3>
-          <pre>
-uv run python -m pipeline pipeline=register_dataset +experiment=mammaprint
-uv run python -m pipeline pipeline=split_dataset     +experiment=mammaprint
-uv run python -m pipeline pipeline=embed_dataset     +experiment=mammaprint
-uv run python -m pipeline pipeline=learn             +experiment=mammaprint</pre>
-          <p style="font-size:14.5px">Each run prints the provenance chain and a
-          <code>[hint]</code> line showing how to pin it for downstream steps.</p>
+          <h3>💻 Locally, in order</h3>
+          <div class="term">
+            <div class="term-bar"><i></i><i></i><i></i><em>terminal</em></div>
+            <pre><span class="p">$</span> uv run python -m pipeline pipeline=register_dataset +experiment=mammaprint
+<span class="p">$</span> uv run python -m pipeline pipeline=split_dataset     +experiment=mammaprint
+<span class="p">$</span> uv run python -m pipeline pipeline=embed_dataset     +experiment=mammaprint
+<span class="p">$</span> uv run python -m pipeline pipeline=learn             +experiment=mammaprint</pre>
+          </div>
+          <p style="font-size:13.5px;color:var(--dim);margin-top:10px">
+          Each run prints the provenance chain and a <code>[hint]</code> line showing how to pin it for downstream steps.</p>
         </div>
         <div>
-          <h3>On the cluster — one job per step <span class="badge new">new</span></h3>
-          <pre>
-<span class="c"># once: uv sync --extra job, edit scripts/_submit.py</span>
-<span class="c"># (image + EXPERIMENT = "mammaprint")</span>
-uv run python scripts/register_dataset.py
-uv run python scripts/split_dataset.py
-uv run python scripts/embed_dataset.py
-uv run python scripts/learn.py
+          <h3>☁️ On the cluster — one job per step <span class="badge new">NEW</span></h3>
+          <div class="term">
+            <div class="term-bar"><i></i><i></i><i></i><em>terminal</em></div>
+            <pre><span class="c"># once: uv sync --extra job · edit scripts/_submit.py (image, EXPERIMENT)</span>
+<span class="p">$</span> uv run python scripts/register_dataset.py   <span class="c">→ provenance-register-dataset</span>
+<span class="p">$</span> uv run python scripts/split_dataset.py       <span class="c">→ provenance-split-dataset</span>
+<span class="p">$</span> uv run python scripts/embed_dataset.py       <span class="c">→ provenance-embed-dataset</span>
+<span class="p">$</span> uv run python scripts/learn.py               <span class="c">→ provenance-learn</span>
 
 <span class="c"># or the whole chain in one job:</span>
-uv run python scripts/submit_pipeline.py</pre>
-          <p style="font-size:14.5px">Username comes from your kube config; each job runs
-          the step with full provenance (<code>job_*</code> tags, image, git commit).</p>
+<span class="p">$</span> uv run python scripts/submit_pipeline.py</pre>
+          </div>
+          <p style="font-size:13.5px;color:var(--dim);margin-top:10px">
+          Username comes from your kube config; jobs record <code>job_*</code> tags (cluster, CPU/memory, image).</p>
         </div>
       </div>
     </section>
 
     <!-- 7 · what changed -->
     <section class="slide">
-      <h2>How it differs from the current pipeline</h2>
-      <table>
-        <tr><th></th><th>Current pipeline</th><th>This template</th></tr>
-        <tr>
-          <td><b>Structure</b></td>
-          <td>One monolithic <code>pipeline/__main__.py</code> — all steps in one run</td>
-          <td>One module per step in <code>pipeline/</code>; any step runs alone</td>
-        </tr>
-        <tr>
-          <td><b>Cluster jobs</b></td>
-          <td>One job for the whole chain — rerun everything to redo one step</td>
-          <td>One job script per step (<code>scripts/*.py</code>) + whole-chain script;
-              DNS-1123 job names</td>
-        </tr>
-        <tr>
-          <td><b>Dataset registration</b></td>
-          <td>Hardcoded demo layout — class subfolders, <code>*.csv</code> only</td>
-          <td>Your real data: cohort table (csv/xlsx), <b>regex</b>, or folder scan
-              (any file type)</td>
-        </tr>
-        <tr>
-          <td><b>Dataset config</b></td>
-          <td>CLI flags per run, demo-only experiment</td>
-          <td>One experiment YAML per dataset, versioned in git;
-              <code>EXPERIMENT</code> constant for the jobs</td>
-        </tr>
-        <tr>
-          <td><b>Provenance</b></td>
-          <td colspan="2">Unchanged — still every step an MLflow run:
-          user → dataset (sizes/mtimes) → verify → inputs → outputs. Now per-step
-          instead of per-whole-run.</td>
-        </tr>
-      </table>
+      <h2>How it differs from <span style="color:var(--warn)">machine-learning</span> (mlkit only)</h2>
+      <div class="cols">
+        <div class="arch old">
+          <h3>🧪 RationAI/machine-learning</h3>
+          <div class="box" style="border-style:solid; border-color:#4a3d28">
+            <b>Lightning + Hydra + MLflow + uv</b> — the quickstart this template builds on
+          </div>
+          <div style="text-align:center">
+            <span class="mini">ml/ data module</span><span class="mini">mode=fit / validate / test / predict</span><span class="mini">preprocessing/ qc · tiling · masks</span>
+          </div>
+          <div class="box">📊 mlkit <b>MLFlowLogger</b> — params, metrics, artifacts</div>
+          <div class="box" style="border-color:#4a3d28">❌ runs are <b>isolated</b>: who ran it is just an MLflow username,<br>
+              which files it saw is a path in the config, no upstream links,<br>
+              nothing checks the data on disk</div>
+        </div>
+        <div class="arch new">
+          <h3>🧬 prov-ml-template — mlkit <b>+ provenance</b></h3>
+          <div class="box" style="border-style:solid; border-color:#2f4a28">
+            <b>same skeleton</b> — Hydra configs · MLflow via mlkit · experiment YAMLs · kube-jobs
+          </div>
+          <div class="box" style="border-color:#2f4a28">👤 <b>User_Registry</b> — who ran it (username from the kube config)</div>
+          <div class="box" style="border-color:#2f4a28">🗂️ <b>Dataset_Registry</b> — which files: sizes/mtimes fingerprint,<br>
+              ✂️ split <b>verifies</b> the disk against it before training</div>
+          <div class="box" style="border-color:#2f4a28">🔗 runs <b>chained</b> via <code>input_uris</code> — which run produced what</div>
+          <div class="box" style="border-color:#2f4a28">🛰️ env captured: git commit · image · hardware · <code>job_*</code> tags</div>
+        </div>
+      </div>
+      <p style="text-align:center; color:var(--dim); font-size:14px; margin-top:14px">
+      Result: a <b style="color:var(--good)">W3C PROV document</b> can be assembled from the runs — who ran what, on which data, with which code and environment. Provenance is layered on top of the mlkit backbone, not a rewrite.</p>
     </section>
 
     <!-- 8 · mlflow ui -->
     <section class="slide">
-      <h2>What to look for in the MLflow UI</h2>
+      <h2>What you get in the MLflow UI</h2>
       <div class="cols">
-        <div>
-          <h3>Dataset_Registry experiment</h3>
-          <ul>
-            <li>A run per dataset version, <code>file_sizes</code> / <code>file_mtimes</code> tags —
-                the fingerprint that <code>verify_dataset</code> checks your disk against.</li>
-          </ul>
-          <h3>Your experiment (e.g. "Dataset Mammaprint")</h3>
-          <ul>
-            <li>One run per step, tagged <code>step=...</code></li>
-            <li><code>dataset_verified</code>, git commit, docker image, hardware, seeds,
-                <code>job_*</code> (cluster, CPU/memory) when run as a kube-job</li>
-            <li>Params: the whole resolved Hydra config</li>
-            <li>Artifacts: <code>train.csv</code>/<code>test.csv</code>, <code>embeddings/</code>,
-                <code>cluster/</code>, frozen requirements, <code>console.log</code></li>
-            <li><code>embed_dataset</code>/<code>learn</code> list their upstream under
-                <code>input_uris</code> — the chain is traceable end to end</li>
-          </ul>
+        <div style="flex:1.35">
+          <div class="run">
+            <h4>▶ run · step=embed_dataset</h4>
+            <div class="kv">
+              <span>tags</span><b>step · dataset_verified · git commit · docker image · hardware · seeds · job_* (cluster, CPU/mem)</b>
+              <span>params</span><b>the whole resolved Hydra config (cfg_*)</b>
+              <span>artifacts</span><b>train.csv / test.csv · embeddings/ · cluster/ · frozen requirements · console.log</b>
+              <span>inputs</span><b><code>input_uris</code> → the split run it consumed</b>
+            </div>
+          </div>
+          <div class="run" style="margin-top:10px">
+            <h4>🗄️ run · experiment “Dataset_Registry”</h4>
+            <div class="kv">
+              <span>per dataset version</span><b><code>file_sizes</code> / <code>file_mtimes</code> — the fingerprint that <code>verify_dataset</code> checks your disk against</b>
+            </div>
+          </div>
         </div>
         <div>
-          <div class="card">
-            <h3>Notes for real (WSI) data</h3>
-            <ul style="font-size:14.5px">
-              <li>Registration &amp; split work on any file type (e.g. <code>.mrxs</code>).</li>
-              <li><code>embed_dataset</code>/<code>learn</code> expect per-sample
-                  <b>feature files</b> — insert your own WSI featurization step there.</li>
-            </ul>
+          <div class="card" style="border-color:#2f4a28">
+            <h3 style="margin-top:0">🩹 Real (WSI) data — two notes</h3>
+            <p style="font-size:14px">• Registration &amp; split work on any file type (<code>.mrxs</code>, <code>.svs</code>…).</p>
+            <p style="font-size:14px">• <code>embed_dataset</code>/<code>learn</code> expect per-sample <b>feature files</b> — insert your own WSI featurization step there.</p>
           </div>
-          <div class="card">
-            <h3>TL;DR</h3>
-            <p style="font-size:14.5px"><span class="num">1</span><code>uv sync</code> + env vars<br>
-            <span class="num">2</span><code>create_user</code> once<br>
-            <span class="num">3</span>copy <code>configs/experiment/&lt;dataset&gt;.yaml</code>,
-            fill in <code>data_path</code> + <code>pattern</code>/<code>source</code><br>
-            <span class="num">4</span>run the four steps (local or per-step k8s jobs)</p>
+          <div class="card" style="margin-top:12px">
+            <h3 style="margin-top:0">TL;DR</h3>
+            <div class="steps-big" style="font-size:14px">
+              <div class="big"><span><b>setup</b> — <code>uv sync</code> + env vars, then <code>create_user</code> once</span></div>
+              <div class="big"><span><b>copy</b> <code>configs/experiment/&lt;dataset&gt;.yaml</code> — set <code>data_path</code> + <code>pattern</code>/<code>source</code></span></div>
+              <div class="big"><span><b>run</b> the four steps — locally or as per-step k8s jobs</span></div>
+            </div>
           </div>
         </div>
       </div>
