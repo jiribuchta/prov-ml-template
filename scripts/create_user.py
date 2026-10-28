@@ -8,4 +8,4 @@ from _submit import submit_steps
 
 
 if __name__ == "__main__":
-    submit_steps(["create-user"])
+    submit_steps(["create_user"])
