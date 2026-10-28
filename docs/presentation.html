@@ -264,7 +264,7 @@
           <p style="font-size:14.5px">You analyse — and register your own dataset when you have one.</p>
           <div class="steps-big" style="font-size:14px">
             <div class="big"><span><b>Prerequisite, once, ever:</b> <code>create_user</code> — registers you in <code>User_Registry</code></span></div>
-            <div class="big"><span><b>Per analysis:</b> split your way — log it to MLflow with the dataset's <code>run_id</code> as a tag — then <b>train with mlkit</b></span></div>
+            <div class="big"><span><b>Per analysis:</b> split your way — log it to MLflow, pin it in the config — then <b>train with mlkit</b></span></div>
             <div class="big"><span><b>Zero provenance code</b> in your training app — one <code>ProvenanceCallback</code> block in the trainer config</span></div>
             <div class="big"><span>Look at results in the MLflow UI</span></div>
           </div>
@@ -366,14 +366,14 @@ print(register_dataset('/mnt/data/.../mammaprint/slides.csv',
             <pre><span class="c"># your split, as always — any method, any framework</span>
 train, test = my_split(cohort)
 
-<span class="c"># the only provenance part: log it + link it to the registration</span>
-<span class="k">with</span> mlflow.start_run(run_name=<span class="p">"my_split"</span>) <span class="k">as</span> r:
+<span class="c"># log it to MLflow, as always — nothing provenance-specific here:</span>
+<span class="k">with</span> mlflow.start_run(run_name=<span class="p">"my_split"</span>):
     train.to_csv(<span class="p">"train.csv"</span>, index=<span class="k">False</span>)   <span class="c"># wsi_path column — the file list</span>
     mlflow.log_artifact(<span class="p">"train.csv"</span>)
-    mlflow.set_tag(<span class="p">"dataset_run_id"</span>, <span class="p">"f94f159b…"</span>)  <span class="c"># ← the registration</span>
 
-<span class="c"># then pin it in the trainer config — the URI is on the run's page:</span>
+<span class="c"># then pin it in the trainer config (the run_id is there from step 1):</span>
 <span class="k">dataset:</span>
+  <span class="k">run_id:</span> f94f159b…              <span class="c"># the registration — already pinned</span>
   <span class="k">mlflow_uris:</span>
     <span class="k">split_dataset:</span> mlflow-artifacts:/0/6b2c…/artifacts/train.csv</pre>
           </div>
@@ -386,7 +386,7 @@ train, test = my_split(cohort)
           <div class="card">
             <h3 style="margin-top:0">What training does with it</h3>
             <p style="font-size:14px; margin:6px 0">📄 downloads your <code>train.csv</code> — a list of files, the data stays in place</p>
-            <p style="font-size:14px; margin:6px 0">🔗 follows its <code>dataset_run_id</code> tag → the registration</p>
+            <p style="font-size:14px; margin:6px 0">🔗 verifies against the registration pinned in your config — <code>dataset.run_id</code>, step 1</p>
             <p style="font-size:14px; margin:6px 0">🔎 <b>verifies the dataset behind your split</b> — disk vs the fingerprint
             (sizes + mtimes) → <code>dataset_verification</code> tag</p>
           </div>
@@ -433,6 +433,7 @@ mlflow.log_param("data_path", ...)      <span class="c">❌ a path string — no
   <span class="k">callbacks:</span>
     - <span class="p">_target_:</span> rationai.mlkit.lightning.callbacks.ProvenanceCallback
       <span class="k">fail_fast:</span> true             <span class="c"># abort if disk ≠ fingerprint</span>
+      <span class="k">dataset_run_id:</span> ${dataset.run_id}  <span class="c"># ← the pin from step 1</span>
       <span class="k">split_uris:</span>                <span class="c"># ← copied from your split run</span>
         <span class="k">train:</span> mlflow-artifacts:/0/6b2c…/artifacts/train.csv
         <span class="k">test:</span>  mlflow-artifacts:/0/6b2c…/artifacts/test.csv</pre>

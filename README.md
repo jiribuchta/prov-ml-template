@@ -140,7 +140,8 @@ always names the exact dataset it consumed.
 
 > The split steps above are the template's demo producer — your own splitter
 > works too: any run that logs a `train.csv` (wsi_path column, the file list)
-> and tags itself `dataset_run_id` = the registration is a valid split.
+> is a valid split. Training verifies it against the `dataset.run_id` you
+> already pin.
 
 To train on this pipeline's output with the standard RationAI stack
 (rationai-mlkit), you write **no provenance code at all** — the pipeline
@@ -153,6 +154,7 @@ trainer:
   callbacks:
     - _target_: rationai.mlkit.lightning.callbacks.ProvenanceCallback
       fail_fast: true
+      dataset_run_id: ${dataset.run_id}    # ← the registration, from this config
       split_uris:                       # ← the bridge to this pipeline
         train: mlflow-artifacts:/<exp_id>/<run_id>/artifacts/train.csv
         test:  mlflow-artifacts:/<exp_id>/<run_id>/artifacts/test.csv

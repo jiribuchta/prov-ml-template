@@ -2564,7 +2564,7 @@ dependencies = [
 [[package]]
 name = "rationai-provenance"
 version = "0.1.0"
-source = { git = "https://github.com/RationAI/provenance.git#34a6844d3c76a251bfd37ef6dbd7b7f6bc5aa5fa" }
+source = { git = "https://github.com/RationAI/provenance.git#46459136d5a4b7d21f4b20bec772427d6e64a803" }
 dependencies = [
     { name = "mlflow" },
     { name = "omegaconf" },
