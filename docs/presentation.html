@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>prov-ml-template — who does what</title>
+<title>prov-ml-template — kube-jobs, provenance, and your workflow</title>
 <style>
   :root {
     --bg: #0f1117; --panel: #161a23; --panel2: #1b2030;
@@ -40,7 +40,11 @@
   pre .c { color: #565f89; } pre .k { color: #bb9af7; } pre .p { color: #7aa2f7; }
   pre .adam { color: #e0af68; } pre .you { color: #9ece6a; }
 
-  /* step flow */
+  .part { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .part b { background: var(--accent); color: #0f1117; border-radius: 8px; padding: 3px 14px;
+            font-size: 14px; letter-spacing: 1.5px; flex: none; }
+  .part span { color: var(--dim); font-size: 14px; }
+
   .flow { display: flex; align-items: stretch; gap: 6px; margin: 22px 0 14px; }
   .step { flex: 1; background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
           padding: 14px 8px 10px; text-align: center; position: relative; }
@@ -49,7 +53,6 @@
   .step span { font-size: 12px; color: var(--dim); display: block; margin-top: 4px; }
   .arrow { align-self: center; color: var(--dim); font-size: 20px; flex: none; }
 
-  /* cards, chips, badges */
   .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; }
   .cols { display: flex; gap: 22px; } .cols > div { flex: 1; min-width: 0; }
   .chip { display: inline-flex; align-items: center; gap: 7px; background: var(--panel2); border: 1px solid var(--line);
@@ -60,9 +63,7 @@
   .who { display: inline-block; border-radius: 5px; padding: 0 8px; font-size: 12px; font-weight: 800; letter-spacing: .5px; }
   .who.adam { background: #2b251c; color: var(--warn); border: 1px solid #4a3d28; }
   .who.you { background: #1f2b1c; color: var(--good); border: 1px solid #2f4a28; }
-  .who.all { background: #1b2030; color: var(--accent); border: 1px solid var(--line); }
 
-  /* terminal window */
   .term { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--code-bg); }
   .term-bar { display: flex; align-items: center; gap: 6px; background: var(--panel); padding: 7px 12px;
               font-size: 12.5px; color: var(--dim); border-bottom: 1px solid var(--line); }
@@ -70,13 +71,6 @@
   .term-bar i:nth-child(1) { background: #f7768e; } .term-bar i:nth-child(2) { background: #e0af68; } .term-bar i:nth-child(3) { background: #9ece6a; }
   .term-bar em { margin-left: 8px; font-style: normal; }
 
-  /* file tree */
-  .tree { font-family: "Cascadia Code", ui-monospace, Consolas, monospace; font-size: 13.5px; line-height: 1.8;
-          background: var(--code-bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin-top: 8px; }
-  .tree .hi { color: var(--good); } .tree .dim { color: var(--dim); }
-  .t1 { padding-left: 22px; } .t2 { padding-left: 44px; }
-
-  /* numbered stepper */
   .steps-big { counter-reset: n; display: flex; flex-direction: column; gap: 10px; }
   .big { display: flex; gap: 14px; align-items: flex-start; background: var(--panel); border: 1px solid var(--line);
          border-radius: 12px; padding: 12px 16px; }
@@ -85,11 +79,32 @@
                  justify-content: center; font-size: 17px; }
   .big b { color: var(--accent); }
 
-  /* run mock */
   .run { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
   .run h4 { margin: 0 0 8px; font-size: 14.5px; color: var(--accent); font-family: "Cascadia Code", ui-monospace, Consolas, monospace; }
   .kv { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; font-size: 13px; }
   .kv span { color: var(--dim); } .kv b { font-weight: 600; color: var(--ink); }
+
+  /* interactive flow diagram */
+  svg { width: 100%; height: auto; display: block; }
+  svg text { font-family: "Segoe UI", system-ui, sans-serif; }
+  .gnode rect { fill: var(--panel); stroke: var(--line); stroke-width: 1.5; }
+  .gnode text { fill: var(--ink); font-size: 13.5px; text-anchor: middle; }
+  .gnode text.s { fill: var(--dim); font-size: 11.5px; }
+  .gedge path { fill: none; stroke: #565f89; stroke-width: 2; }
+  .gedge text { fill: var(--dim); font-size: 11px; text-anchor: middle; }
+  .gedge.pin path { stroke-dasharray: 6 5; }
+  .mlbg rect { fill: none; stroke: var(--line); stroke-dasharray: 3 4; }
+  .mlbg text { fill: var(--dim); font-size: 12px; }
+  g.dimm { opacity: .35; } g.lit { opacity: 1; }
+  .gnode.lit rect { stroke: var(--accent); stroke-width: 2.5; }
+  .gedge.lit path { stroke: var(--accent); }
+  .gnode { cursor: pointer; }
+  #flowinfo { background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+              padding: 10px 16px; font-size: 14.5px; min-height: 62px; margin-top: 8px; }
+  #fctl button { background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 6px;
+                 padding: 4px 14px; font-size: 14px; cursor: pointer; margin-right: 8px; }
+  #fctl button:hover { border-color: var(--accent); }
+  #fctl span { color: var(--dim); font-size: 13px; }
 
   #hud { position: fixed; bottom: 14px; right: 20px; display: flex; gap: 10px; align-items: center;
          color: var(--dim); font-size: 13px; user-select: none; z-index: 10; }
@@ -106,30 +121,272 @@
 
     <!-- 1 · title -->
     <section class="slide">
-      <div style="text-align:center; margin-top:4vh">
+      <div style="text-align:center; margin-top:3vh">
         <div style="font-size:56px; line-height:1">🧬</div>
         <h1>prov-ml-template</h1>
-        <p class="sub">From dataset to results — <b>who does what</b>, step by step.</p>
-        <p style="margin:26px 0 4px; color:var(--dim); font-size:13.5px; letter-spacing:1px">PREREQUISITES — DONE ONCE, BEFORE ANY ANALYSIS</p>
-        <div class="flow" style="max-width:620px; margin:0 auto 4px">
-          <div class="step"><span class="ico">👤</span><b>create_user</b><span class="who you">YOU</span><span>once, ever</span></div>
-          <div class="step"><span class="ico">🗂️</span><b>register_dataset</b><span class="who adam">ADAM</span><span>once per dataset</span></div>
+        <p class="sub">Cluster jobs that are actually traceable — in three parts:</p>
+        <div style="display:flex; gap:18px; max-width:900px; margin:26px auto 0">
+          <div class="card" style="flex:1">
+            <h3 style="margin-top:0">1 · ☁️ kube-jobs</h3>
+            <p style="font-size:14px; color:var(--dim)">Every pipeline step is a rerunnable<br>cluster job — identity and hardware<br>recorded automatically.</p>
+          </div>
+          <div class="card" style="flex:1; border-color:#2f4a28">
+            <h3 style="margin-top:0">2 · 🔬 provenance</h3>
+            <p style="font-size:14px; color:var(--dim)">Who ran what, on which data,<br>with which code and environment —<br>registries, fingerprints, pinned runs.</p>
+          </div>
+          <div class="card" style="flex:1">
+            <h3 style="margin-top:0">3 · 👤 your workflow</h3>
+            <p style="font-size:14px; color:var(--dim)">Exactly who does what:<br>Adam registers the dataset,<br>you run split → embed → learn.</p>
+          </div>
         </div>
-        <p style="margin:18px 0 4px; color:var(--dim); font-size:13.5px; letter-spacing:1px">THE PIPELINE — YOUR ANALYSIS</p>
-        <div class="flow" style="max-width:760px; margin:0 auto 4px">
-          <div class="step"><span class="ico">✂️</span><b>split_dataset</b><span class="who you">YOU</span><span>per analysis</span></div>
-          <div class="arrow">→</div>
-          <div class="step"><span class="ico">🧬</span><b>embed_dataset</b><span class="who you">YOU</span><span>per analysis</span></div>
-          <div class="arrow">→</div>
-          <div class="step"><span class="ico">🧠</span><b>learn</b><span class="who you">YOU</span><span>per analysis</span></div>
-        </div>
-        <p class="sub" style="font-size:15px">You never touch the data files — <b>Adam Kukučka registers the dataset for you</b>.<br>
-        You fill in nothing but the printed <b>[hint]</b> lines. Every step is a provenance-tracked MLflow run.</p>
+        <p class="sub" style="font-size:15px">Same MLflow, same Hydra, same kube-jobs — provenance is one call per step + one config block.</p>
       </div>
     </section>
 
-    <!-- 2 · who does what -->
+    <!-- 2 · part 1: jobs -->
     <section class="slide">
+      <div class="part"><b>PART 1 · KUBE-JOBS</b><span>every step is a cluster job</span></div>
+      <h2>One script per step → one job per step</h2>
+      <div class="cols">
+        <div style="flex:1.2">
+          <div class="term">
+            <div class="term-bar"><i></i><i></i><i></i><em>terminal</em></div>
+            <pre><span class="c"># once: uv sync --extra job · fill the TODOs in scripts/_submit.py</span>
+<span class="you">$</span> uv run python scripts/split_dataset.py  <span class="c">→ job provenance-split-dataset</span>
+<span class="you">$</span> uv run python scripts/embed_dataset.py  <span class="c">→ job provenance-embed-dataset</span>
+<span class="you">$</span> uv run python scripts/learn.py          <span class="c">→ job provenance-learn</span>
+
+<span class="c"># switch dataset — one line, nothing else:</span>
+<span class="k">EXPERIMENT</span> = <span class="p">"mammaprint"</span>   <span class="c"># scripts/_submit.py</span></pre>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <h3 style="margin-top:0">🔤 DNS-1123 job names</h3>
+            <p style="font-size:14px">k8s names allow no underscores — jobs are
+            <code>provenance-&lt;step&gt;</code> with hyphens; the pipeline step itself keeps its name.</p>
+          </div>
+          <div class="card" style="margin-top:12px">
+            <h3 style="margin-top:0">🔁 Rerunnable by default</h3>
+            <p style="font-size:14px">The previous job is auto-deleted before submitting
+            (submit_job rejects existing names) — rerun a step as often as you like.</p>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <p style="font-size:14px; margin:4px 0">📦 <b>Inside every job:</b> <code>git clone</code> + checkout →
+        <code>UV_FROZEN=1</code> + <code>uv sync</code> (never refresh the kube-jobs source in-cluster) →
+        run the step · storage mounts for <code>DATA</code> and <code>PROJECTS</code> · CPU/memory from the script.</p>
+      </div>
+    </section>
+
+    <!-- 3 · part 1: identity + chain -->
+    <section class="slide">
+      <div class="part"><b>PART 1 · KUBE-JOBS</b><span>identity, hardware tags, the chain</span></div>
+      <h2>The job is you — and the whole chain is one job</h2>
+      <div class="cols">
+        <div>
+          <div class="card" style="border-color:#2f4a28">
+            <h3 style="margin-top:0">👤 Username from your kube config</h3>
+            <p style="font-size:14px">It becomes <code>JOB_USER</code> inside the job — the <b>exact name
+            provenance looks runs up by</b>. Cluster runs link to you with
+            <b>zero configuration</b> (only <code>MLFLOW_TRACKING_URI</code> comes from the cluster).</p>
+          </div>
+          <div class="card" style="margin-top:12px">
+            <h3 style="margin-top:0">🏷️ Hardware &amp; cluster recorded</h3>
+            <p style="font-size:14px">Jobs get <code>job_*</code> tags — cluster, CPU/memory, image —
+            from kube-jobs env vars, plus <code>console.log</code> (stdout capture).</p>
+          </div>
+        </div>
+        <div>
+          <div class="term">
+            <div class="term-bar"><i></i><i></i><i></i><em>terminal</em></div>
+            <pre><span class="c"># or the whole chain in one job:</span>
+<span class="you">$</span> uv run python scripts/submit_pipeline.py</pre>
+          </div>
+          <div class="card" style="margin-top:12px">
+            <h3 style="margin-top:0">🔗 The chain forwards its own pins</h3>
+            <p style="font-size:14px">Each step tees to <code>job.log</code>; the next command gets
+            <code>$(grep '^\s+dataset\.' job.log)</code> — the printed <code>[hint]</code> pins
+            are passed on automatically, under <code>set -eo pipefail</code>.
+            A fresh chain runs end-to-end <b>with nothing pasted</b>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4 · part 2: provenance overview -->
+    <section class="slide">
+      <div class="part"><b>PART 2 · PROVENANCE</b><span>how it works</span></div>
+      <h2>Three registries answer three questions</h2>
+      <div class="cols">
+        <div class="card">
+          <h3 style="margin-top:0">👤 User_Registry — <b>who</b></h3>
+          <p style="font-size:14px">One run per person (<code>create_user</code>, once ever).
+          Your kube username is the key — every run you start is linked to you.</p>
+        </div>
+        <div class="card">
+          <h3 style="margin-top:0">🗂️ Dataset_Registry — <b>what data</b></h3>
+          <p style="font-size:14px">One run per dataset version (Adam's <code>register_dataset</code>):
+          the fingerprint — file sizes + mtimes — that later steps verify your disk against.</p>
+        </div>
+        <div class="card">
+          <h3 style="margin-top:0">▶ pipeline runs — <b>what happened</b></h3>
+          <p style="font-size:14px">One MLflow run per step: user, git commit, docker image,
+          hardware, seeds, upstream <code>inputs</code>, output artifacts — chained by pinned URIs.</p>
+        </div>
+      </div>
+      <div class="cols" style="margin-top:14px">
+        <div style="flex:1.3">
+          <div class="term">
+            <div class="term-bar"><i></i><i></i><i></i><em>inside every step — the whole provenance change</em></div>
+            <pre><span class="k">log_provenance</span>(config=config)   <span class="c"># user · dataset fingerprint</span>
+                                <span class="c"># git commit · image · hardware</span>
+                                <span class="c"># seeds · upstream inputs</span></pre>
+          </div>
+        </div>
+        <div class="card" style="border-color:#2f4a28">
+          <p style="font-size:14.5px; margin:4px 0">🏛️ From these runs, a <b>W3C PROV document</b> can be
+          assembled — who ran what, on which data, with which code and environment.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5 · part 2: interactive data flow -->
+    <section class="slide" id="fs">
+      <div class="part"><b>PART 2 · PROVENANCE</b><span>how the data travels</span></div>
+      <h2>Follow the data — step through, or click a box</h2>
+      <div id="fctl" style="margin-bottom:6px">
+        <button onclick="fprev()">◀</button>
+        <button onclick="fnext()">▶</button>
+        <button onclick="fplay()">⏩ play</button>
+        <span id="fcount"></span>
+        <span style="margin-left:16px">— solid = data &amp; records · dashed = the pins you paste</span>
+      </div>
+      <svg viewBox="0 0 1180 470" id="flow">
+        <defs>
+          <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#565f89"></path>
+          </marker>
+        </defs>
+        <g class="mlbg">
+          <rect x="230" y="24" width="940" height="250" rx="14"></rect>
+          <text x="250" y="46">MLflow server</text>
+        </g>
+        <g class="gnode" id="n-disk" onclick="fjump('n-disk')">
+          <rect x="30" y="58" width="170" height="70" rx="12"></rect>
+          <text x="115" y="86">📁 data on disk</text>
+          <text x="115" y="106" class="s">stays in place</text>
+        </g>
+        <g class="gnode" id="n-reg" onclick="fjump('n-reg')">
+          <rect x="290" y="58" width="170" height="70" rx="12"></rect>
+          <text x="375" y="80">🗂️ register</text>
+          <text x="375" y="98" class="s">Dataset_Registry run</text>
+          <text x="375" y="114" class="s">fingerprint: sizes+mtimes</text>
+        </g>
+        <g class="gnode" id="n-split" onclick="fjump('n-split')">
+          <rect x="530" y="58" width="170" height="70" rx="12"></rect>
+          <text x="615" y="80">✂️ split</text>
+          <text x="615" y="98" class="s">train.csv · test.csv</text>
+          <text x="615" y="114" class="s">dataset_verified</text>
+        </g>
+        <g class="gnode" id="n-embed" onclick="fjump('n-embed')">
+          <rect x="770" y="58" width="170" height="70" rx="12"></rect>
+          <text x="855" y="80">🧬 embed</text>
+          <text x="855" y="98" class="s">embeddings/</text>
+          <text x="855" y="114" class="s">PCA</text>
+        </g>
+        <g class="gnode" id="n-learn" onclick="fjump('n-learn')">
+          <rect x="1010" y="58" width="150" height="70" rx="12"></rect>
+          <text x="1085" y="80">🧠 learn</text>
+          <text x="1085" y="98" class="s">assignments</text>
+          <text x="1085" y="114" class="s">ARI</text>
+        </g>
+        <g class="gedge" id="e-walk">
+          <path d="M 200,93 L 286,93" marker-end="url(#arr)"></path>
+          <text x="243" y="84">scan</text>
+        </g>
+        <g class="gedge" id="e-fp">
+          <path d="M 460,93 L 526,93" marker-end="url(#arr)"></path>
+          <text x="493" y="84">verify</text>
+        </g>
+        <g class="gedge" id="e-split">
+          <path d="M 700,93 L 766,93" marker-end="url(#arr)"></path>
+          <text x="733" y="84">pinned</text>
+        </g>
+        <g class="gedge" id="e-embed">
+          <path d="M 940,93 L 1006,93" marker-end="url(#arr)"></path>
+          <text x="973" y="84">pinned</text>
+        </g>
+        <g class="gnode" id="n-yaml" onclick="fjump('n-yaml')">
+          <rect x="530" y="340" width="460" height="70" rx="12"></rect>
+          <text x="760" y="368">📄 experiment YAML</text>
+          <text x="760" y="388" class="s">dataset.run_id · mlflow_uris — the pins you paste</text>
+        </g>
+        <g class="gedge pin" id="p-split">
+          <path d="M 615,340 C 615,250 615,200 615,136" marker-end="url(#arr)"></path>
+          <text x="597" y="240">run_id pin</text>
+        </g>
+        <g class="gedge pin" id="p-embed">
+          <path d="M 855,340 C 855,250 855,200 855,136" marker-end="url(#arr)"></path>
+          <text x="837" y="240">split URI pin</text>
+        </g>
+        <g class="gedge pin" id="p-learn">
+          <path d="M 990,340 C 1040,300 1085,220 1085,136" marker-end="url(#arr)"></path>
+          <text x="1078" y="250">embed URI pin</text>
+        </g>
+        <g class="gedge" id="n-note" style="opacity:1">
+          <text x="230" y="316" style="fill:var(--dim); font-size:12.5px; text-anchor:start">every run records: user · git commit · docker image · hardware · seeds → W3C PROV</text>
+        </g>
+      </svg>
+      <div id="flowinfo"></div>
+    </section>
+
+    <!-- 6 · part 2: the rules -->
+    <section class="slide">
+      <div class="part"><b>PART 2 · PROVENANCE</b><span>the three rules</span></div>
+      <h2>What makes it trustworthy</h2>
+      <div class="cols">
+        <div class="card">
+          <h3 style="margin-top:0">🔎 The disk is verified</h3>
+          <p style="font-size:14px"><code>split_dataset</code> re-walks the folder and checks every file
+          against the registration fingerprint → tags the run <code>dataset_verified</code>.
+          Changed files since registration? You see it, not silently analyse it.</p>
+        </div>
+        <div class="card" style="border-color:#2f4a28">
+          <h3 style="margin-top:0">📌 Nothing resolves implicitly</h3>
+          <p style="font-size:14px">A step consumes <b>exactly the run pinned</b> in its config —
+          never "the latest". A missing pin fails immediately and prints the
+          <code>[hint]</code> line to paste. Old runs stay reproducible.</p>
+        </div>
+        <div class="card">
+          <h3 style="margin-top:0">📍 Data is used in place</h3>
+          <p style="font-size:14px">Files stay where they are — nothing is copied or moved.
+          Only <code>manifest.csv</code> is written into the folder; splits are
+          <b>lists</b> of files, logged as small CSV artifacts.</p>
+        </div>
+      </div>
+      <div class="cols" style="margin-top:14px">
+        <div class="run" style="flex:1.3">
+          <h4>▶ what one run records</h4>
+          <div class="kv">
+            <span>tags</span><b>step · dataset_verified · git commit · docker image · hardware · seeds · job_*</b>
+            <span>params</span><b>the whole resolved Hydra config (cfg_*)</b>
+            <span>artifacts</span><b>train/test.csv · embeddings/ · cluster/ · frozen requirements · console.log</b>
+            <span>inputs</span><b>input_uris → the upstream run it consumed</b>
+          </div>
+        </div>
+        <div class="card">
+          <p style="font-size:14.5px; margin:4px 0">🧪 <b>Verification failure aborts?</b> In the pipeline
+          steps it tags <code>dataset_verified=False</code> and continues; in mlkit training
+          (<code>ProvenanceCallback</code>) set <code>fail_fast: true</code> to abort.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7 · part 3: who does what -->
+    <section class="slide">
+      <div class="part"><b>PART 3 · YOUR WORKFLOW</b><span>who does what</span></div>
       <h2>Two people, one pipeline</h2>
       <div class="cols">
         <div class="card" style="border-color:#4a3d28">
@@ -159,43 +416,9 @@
       </div>
     </section>
 
-    <!-- 3 · the pipeline -->
+    <!-- 8 · part 3: Adam prerequisite -->
     <section class="slide">
-      <h2>The pipeline — three steps, all yours</h2>
-      <div class="card" style="padding:8px 16px; margin-bottom:6px">
-        <p style="font-size:14px; margin:4px 0; color:var(--dim)"><b style="color:var(--ink)">Before this:</b> two prerequisites —
-        <span class="who you">YOU</span>&nbsp;<code>create_user</code> (once, ever) ·
-        <span class="who adam">ADAM</span>&nbsp;<code>register_dataset</code> (once per dataset) + he sends you the <code>run_id</code></p>
-      </div>
-      <div class="flow" style="margin-top:12px">
-        <div class="step"><span class="ico">✂️</span><b>split_dataset</b><span class="who you">YOU</span><span>verifies data on disk,<br>train/test file lists</span></div>
-        <div class="arrow">→</div>
-        <div class="step"><span class="ico">🧬</span><b>embed_dataset</b><span class="who you">YOU</span><span>PCA embeddings<br>(your featurizer here)</span></div>
-        <div class="arrow">→</div>
-        <div class="step"><span class="ico">🧠</span><b>learn</b><span class="who you">YOU</span><span>k-means + ARI<br>vs ground truth</span></div>
-      </div>
-      <div class="cols">
-        <div class="card">
-          <h3 style="margin-top:0">🔗 Every run is pinned</h3>
-          <p style="font-size:14px">A step consumes <b>exactly the run</b> you pinned — never “the latest”.
-          Every step prints the <code>[hint]</code> line to paste, so a config always names
-          the exact dataset and runs it used.</p>
-        </div>
-        <div class="card">
-          <h3 style="margin-top:0">📍 Data stays in place</h3>
-          <p style="font-size:14px">Files stay where Adam put them — nothing is copied.
-          Only <code>manifest.csv</code> is written into <code>data_path</code>.</p>
-        </div>
-        <div class="card">
-          <h3 style="margin-top:0">🧪 Verification is automatic</h3>
-          <p style="font-size:14px"><code>split_dataset</code> checks your disk against Adam's fingerprint
-          and tags the run <code>dataset_verified</code> — you can't silently analyse changed data.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- 4 · Adam's part -->
-    <section class="slide">
+      <div class="part"><b>PART 3 · YOUR WORKFLOW</b><span>prerequisite — Adam</span></div>
       <h2><span class="who adam">ADAM</span>&nbsp; <span class="badge old">PREREQUISITE</span> Register the dataset — once per version</h2>
       <p class="sub" style="font-size:14.5px; margin-top:0">Expected of Adam, needed by everyone — <b>no analysis can run before it</b>.</p>
       <div class="cols">
@@ -233,16 +456,13 @@
             <span style="color:var(--dim)">label = named group <code>(?P&lt;label&gt;…)</code> or parent folder · recursive</span></p>
             <p style="font-size:13.5px; margin:6px 0">🌳 <b>Folders</b> — one subfolder per class, any file type</p>
           </div>
-          <div class="card" style="margin-top:12px; border-color:#4a3d28">
-            <p style="font-size:13.5px; margin:4px 0">🔁 <b>New data version?</b> Same steps, bump
-            <code>version</code> — the old registration stays, old runs stay reproducible.</p>
-          </div>
         </div>
       </div>
     </section>
 
-    <!-- 5 · your setup -->
+    <!-- 9 · part 3: your prerequisite -->
     <section class="slide">
+      <div class="part"><b>PART 3 · YOUR WORKFLOW</b><span>prerequisite — you</span></div>
       <h2><span class="who you">YOU</span>&nbsp; <span class="badge new">PREREQUISITE</span> Register yourself — once, ever</h2>
       <p class="sub" style="font-size:14.5px; margin-top:0">The one thing expected of you before your first analysis — takes a minute.</p>
       <div class="cols">
@@ -276,10 +496,10 @@
       </div>
     </section>
 
-    <!-- 6 · your analysis -->
+    <!-- 10 · part 3: the pipeline loop -->
     <section class="slide">
-      <h2><span class="who you">YOU</span>&nbsp; The pipeline — run an analysis, the exact loop</h2>
-      <p class="sub" style="font-size:14.5px; margin-top:0">Prerequisites done — this is the part you repeat for every analysis.</p>
+      <div class="part"><b>PART 3 · YOUR WORKFLOW</b><span>the pipeline</span></div>
+      <h2><span class="who you">YOU</span>&nbsp; Run an analysis — the exact loop</h2>
       <div class="cols">
         <div style="flex:1.35">
           <div class="term">
@@ -307,54 +527,20 @@
           </div>
           <div class="card" style="margin-top:12px; border-color:#2f4a28">
             <p style="font-size:14px; margin:4px 0">✅ Forgot to paste? The step <b>fails immediately</b> and prints
-            exactly what is missing — nothing is guessed, nothing runs on the wrong data.</p>
+            exactly what is missing — nothing is guessed.</p>
           </div>
           <div class="card" style="margin-top:12px">
-            <p style="font-size:14px; margin:4px 0">🔁 Rerun any step any time — the pins decide what it consumes,
-            not the order you ran things in.</p>
+            <p style="font-size:14px; margin:4px 0">☁️ <b>Same on the cluster</b> (part 1):
+            <code>uv run python scripts/&lt;step&gt;.py</code> — same pins, same YAML.<br>
+            🔁 Rerun any step any time — the pins decide, not the order.</p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- 7 · cluster -->
+    <!-- 11 · what changed vs mlkit -->
     <section class="slide">
-      <h2><span class="who you">YOU</span>&nbsp; The pipeline on the cluster — one job per step</h2>
-      <div class="cols">
-        <div>
-          <div class="term">
-            <div class="term-bar"><i></i><i></i><i></i><em>terminal</em></div>
-            <pre><span class="c"># once: set EXPERIMENT = "mammaprint" in scripts/_submit.py</span>
-<span class="you">$</span> uv run python scripts/split_dataset.py   <span class="c">→ k8s job</span>
-<span class="you">$</span> uv run python scripts/embed_dataset.py   <span class="c">→ k8s job</span>
-<span class="you">$</span> uv run python scripts/learn.py           <span class="c">→ k8s job</span></pre>
-          </div>
-          <p style="font-size:13.5px;color:var(--dim);margin-top:10px">
-          Same paste-the-pin loop, same YAML — the job just runs the command for you.
-          Jobs record <code>job_*</code> tags (cluster, CPU/memory, image).
-          (Adam has <code>scripts/register_dataset.py</code> for his one-time part.)</p>
-        </div>
-        <div>
-          <div class="term">
-            <div class="term-bar"><i></i><i></i><i></i><em>terminal</em></div>
-            <pre><span class="c"># or the whole chain in one job:</span>
-<span class="you">$</span> uv run python scripts/submit_pipeline.py</pre>
-          </div>
-          <div class="card" style="margin-top:12px">
-            <p style="font-size:14px; margin:4px 0">🔗 The chain job <b>forwards the pins itself</b> — each step's
-            printed <code>[hint]</code> line is passed to the next command, so you don't paste anything
-            for a full fresh run.</p>
-          </div>
-          <div class="card" style="margin-top:12px">
-            <p style="font-size:14px; margin:4px 0">👤 Username comes from your kube config —
-            <code>create_user</code> once locally and the jobs link to you automatically.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 8 · what changed -->
-    <section class="slide">
+      <div class="part"><b>PART 3 · YOUR WORKFLOW</b><span>what you write</span></div>
       <h2>Same workflow — provenance is <b>one call + one config block</b></h2>
       <div class="cols">
         <div>
@@ -391,7 +577,7 @@ mlflow.log_artifact("requirements.txt") <span class="c">❌ hope it's the right 
     _STEPS[...](config, logger)
 
 <span class="c"># inside every step — the whole change is this one call:</span>
-log_provenance(config=config)   <span class="c"># user · dataset fingerprint</span>
+<span class="k">log_provenance</span>(config=config)   <span class="c"># user · dataset fingerprint</span>
                                 <span class="c"># git commit · image · hardware</span>
                                 <span class="c"># seeds · upstream inputs</span></pre>
           </div>
@@ -413,8 +599,9 @@ log_provenance(config=config)   <span class="c"># user · dataset fingerprint</s
       <code>register_dataset</code> and your one-time <code>create_user</code> fill the registries.</p>
     </section>
 
-    <!-- 9 · what you get -->
+    <!-- 12 · mlflow ui + tldr -->
     <section class="slide">
+      <div class="part"><b>PART 3 · YOUR WORKFLOW</b><span>what you get</span></div>
       <h2>What you get in the MLflow UI</h2>
       <div class="cols">
         <div style="flex:1.35">
@@ -438,16 +625,16 @@ log_provenance(config=config)   <span class="c"># user · dataset fingerprint</s
         </div>
         <div>
           <div class="card" style="border-color:#2f4a28">
-            <h3 style="margin-top:0">TL;DR — who does what</h3>
+            <h3 style="margin-top:0">TL;DR</h3>
             <div class="steps-big" style="font-size:14px">
-              <div class="big"><span><span class="who adam">ADAM</span> <b>prerequisite:</b> registers the dataset — YAML + <code>register_dataset</code> + sends you the <code>run_id</code></span></div>
-              <div class="big"><span><span class="who you">YOU</span> <b>prerequisite:</b> <code>create_user</code> — once, ever</span></div>
-              <div class="big"><span><span class="who you">YOU</span> <b>the pipeline:</b> split → embed → learn, pasting each printed <code>[hint]</code> line</span></div>
+              <div class="big"><span>☁️ <b>every step is a kube-job</b> — rerunnable, identity + hardware recorded, one <code>EXPERIMENT</code> line switches dataset</span></div>
+              <div class="big"><span>🔬 <b>provenance is one call + one block</b> — registries, fingerprint, pinned runs, PROV document</span></div>
+              <div class="big"><span><span class="who adam">ADAM</span> registers the dataset (once) · <span class="who you">YOU</span> <code>create_user</code> (once) · <span class="who you">YOU</span> run split → embed → learn, pasting each <code>[hint]</code></span></div>
             </div>
           </div>
           <div class="card" style="margin-top:12px">
             <h3 style="margin-top:0">🩹 Real (WSI) data</h3>
-            <p style="font-size:14px">• Adam's registration &amp; split work on any file type (<code>.mrxs</code>, <code>.svs</code>…).</p>
+            <p style="font-size:14px">• Registration &amp; split work on any file type (<code>.mrxs</code>, <code>.svs</code>…).</p>
             <p style="font-size:14px">• <code>embed_dataset</code>/<code>learn</code> expect per-sample <b>feature files</b> — insert your own WSI featurization step there.</p>
           </div>
         </div>
@@ -473,6 +660,7 @@ log_provenance(config=config)   <span class="c"># user · dataset fingerprint</s
     document.querySelector('#progress > div').style.width = (100 * (i + 1) / slides.length) + '%';
     document.getElementById('counter').textContent = (i + 1) + ' / ' + slides.length;
     slides[i].scrollTop = 0;
+    if (slides[i].id === 'fs') fpaint();
     history.replaceState(null, '', '#' + (i + 1));
   }
   function go(d) { show(i + d); }
@@ -482,6 +670,42 @@ log_provenance(config=config)   <span class="c"># user · dataset fingerprint</s
     if (e.key === 'Home') show(0);
     if (e.key === 'End') show(slides.length - 1);
   });
+
+  // ── interactive data-flow stepper (slide 5) ──
+  const FLOW = [
+    {els: [], text: '▶ <b>Play</b> — follow the data. The big rule: <b>data files never move</b>; only small CSV lists and MLflow records travel. Click any box for its part of the story.'},
+    {els: ['n-disk'], text: '📁 <b>The data stays in place</b> on the cluster. Nothing is copied — every step works on it where it is.'},
+    {els: ['n-disk','e-walk','n-reg'], text: '🗂️ <b>Adam</b> runs register_dataset once per dataset version: it scans the folder and records the <b>fingerprint</b> (file sizes + mtimes) in a Dataset_Registry run. Prints the <code>run_id</code>.'},
+    {els: ['n-disk','e-walk','n-reg','e-fp','n-split'], text: '✂️ <b>split</b> re-walks the disk and checks it against the fingerprint → tags the run <code>dataset_verified</code>. Then splits the <b>files</b> into train.csv / test.csv lists — no copies.'},
+    {els: ['n-disk','e-walk','n-reg','e-fp','n-split','e-split','n-embed'], text: '🧬 <b>embed</b> downloads the <b>pinned</b> train.csv artifact, computes per-sample features, logs <code>embeddings/</code> as its artifact.'},
+    {els: ['n-disk','e-walk','n-reg','e-fp','n-split','e-split','n-embed','e-embed','n-learn'], text: '🧠 <b>learn</b> reads the pinned embeddings, fits k-means, logs assignments + ARI. <code>input_uris</code> chain every run to its upstream.'},
+    {els: ['n-disk','e-walk','n-reg','e-fp','n-split','e-split','n-embed','e-embed','n-learn','n-yaml','p-split','p-embed','p-learn'], text: '📄 <b>The dashed pins:</b> every step prints a <code>[hint]</code> line that is pasted into the experiment YAML — a config always names the exact runs it consumed. Nothing resolves implicitly.'},
+    {els: ['n-disk','e-walk','n-reg','e-fp','n-split','e-split','n-embed','e-embed','n-learn','n-yaml','p-split','p-embed','p-learn','n-note'], text: '🏛️ <b>Every run records</b> who ran it, the git commit, docker image, hardware and seeds — a <b>W3C PROV document</b> can be assembled from the chain.'}
+  ];
+  let fi = 0, ftimer = null;
+  function fpaint() {
+    const lit = new Set(FLOW[fi].els);
+    document.querySelectorAll('#flow .gnode, #flow .gedge').forEach(g => {
+      if (g.id === 'n-note') return;
+      g.classList.toggle('lit', lit.has(g.id));
+      g.classList.toggle('dimm', !lit.has(g.id));
+    });
+    document.getElementById('flowinfo').innerHTML = (fi + 1) + '/8 — ' + FLOW[fi].text;
+  }
+  function fnext() { fi = Math.min(FLOW.length - 1, fi + 1); fpaint(); }
+  function fprev() { fi = Math.max(0, fi - 1); fpaint(); }
+  function fplay() {
+    if (ftimer) { clearInterval(ftimer); ftimer = null; return; }
+    ftimer = setInterval(() => {
+      if (fi >= FLOW.length - 1) { clearInterval(ftimer); ftimer = null; return; }
+      fnext();
+    }, 2200);
+  }
+  function fjump(id) {
+    fi = FLOW.findIndex(s => s.els.includes(id));
+    if (fi < 0) fi = 0;
+    fpaint();
+  }
   show((parseInt(location.hash.slice(1)) || 1) - 1);
 </script>
 </body>
