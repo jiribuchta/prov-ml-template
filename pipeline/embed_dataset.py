@@ -30,7 +30,7 @@ from pipeline.common import (
 
 def run(config: DictConfig, logger: MLFlowLogger) -> None:
     step = config.pipeline
-    split_uri = resolve_upstream(config, "split_dataset", "split_dataset", "train.csv")
+    split_uri = resolve_upstream(config, "split_dataset")
     train = pd.read_csv(download(split_uri))
 
     root = data_root(config)

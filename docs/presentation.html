@@ -154,9 +154,10 @@
           Run <b>any step alone</b> — no all-or-nothing runs.</p>
         </div>
         <div class="card">
-          <h3 style="margin-top:0">🔗 Runs find each other</h3>
-          <p style="font-size:14px">Downstream steps use the <b>latest finished</b> upstream run, or a pinned
-          <code>runs:/…</code> URI in the experiment config — the chain stays traceable (<code>input_uris</code>).</p>
+          <h3 style="margin-top:0">🔗 Runs are pinned</h3>
+          <p style="font-size:14px">Downstream steps consume the <b>pinned</b>
+          <code>runs:/…</code> URI — every step prints the line to paste, so a config
+          always names the exact runs it consumed (<code>input_uris</code>).</p>
         </div>
         <div class="card">
           <h3 style="margin-top:0">📍 Data stays in place</h3>

@@ -56,60 +56,34 @@ def data_root(config: DictConfig) -> Path:
     return Path(str(config.data_path)).resolve()
 
 
-def dataset_run_id(config: DictConfig) -> str | None:
-    """The Dataset_Registry run that defines this dataset.
+def dataset_run_id(config: DictConfig) -> str:
+    """The Dataset_Registry run that defines this dataset (must be pinned).
 
-    ``dataset.run_id`` pins a specific registration run; when null, the
-    latest registration of ``dataset.name`` at ``dataset.version`` is used
-    (not the latest overall — other datasets must not hijack verification).
+    ``dataset.run_id`` is printed by ``register_dataset`` — nothing resolves
+    implicitly, so a config always names the exact dataset it consumed.
     """
     pinned = OmegaConf.select(config, "dataset.run_id")
-    if pinned:
-        return str(pinned)
-    experiment = mlflow.get_experiment_by_name("Dataset_Registry")
-    if experiment is None:
-        return None
-    runs = mlflow.search_runs(
-        [experiment.experiment_id],
-        filter_string=(
-            f"tags.dataset_name = '{config.dataset.name}' "
-            f"and tags.version = '{config.dataset.version}'"
-        ),
-        order_by=["attributes.start_time DESC"],
-        max_results=1,
-    )
-    return None if runs.empty else str(runs.iloc[0]["run_id"])
+    if not pinned:
+        raise RuntimeError(
+            "dataset.run_id is not set — run register_dataset and paste its "
+            "printed [hint] line into the experiment config."
+        )
+    return str(pinned)
 
 
-def resolve_upstream(config: DictConfig, key: str, step: str, artifact: str) -> str:
-    """Return the upstream artifact URI from the config or the latest run.
+def resolve_upstream(config: DictConfig, key: str) -> str:
+    """Return the upstream artifact URI pinned in ``dataset.mlflow_uris.<key>``.
 
-    ``dataset.mlflow_uris.<key>`` pins a specific run; when null, the latest
-    finished run tagged ``step=<step>`` in the experiment is used.
+    No latest-run fallback: each upstream step prints the [hint] line to
+    paste, so a config always names the exact run it consumed.
     """
     pinned = OmegaConf.select(config, f"dataset.mlflow_uris.{key}")
-    if pinned:
-        return str(pinned)
-
-    experiment = mlflow.get_experiment_by_name(str(config.metadata.experiment_name))
-    if experiment is None:
+    if not pinned:
         raise RuntimeError(
-            f"MLflow experiment '{config.metadata.experiment_name}' not found — "
-            "run the upstream step first."
+            f"dataset.mlflow_uris.{key} is not set — run the '{key}' step and "
+            "paste its printed [hint] line into the experiment config."
         )
-    runs = mlflow.search_runs(
-        [experiment.experiment_id],
-        filter_string=f"tags.step = '{step}' and attributes.status = 'FINISHED'",
-        order_by=["attributes.start_time DESC"],
-        max_results=1,
-    )
-    if runs.empty:
-        raise RuntimeError(
-            f"No finished '{step}' run found — run it first, or pin "
-            f"dataset.mlflow_uris.{key} in the experiment config."
-        )
-    run_id = str(runs.iloc[0]["run_id"])
-    return f"runs:/{run_id}/{artifact}"
+    return str(pinned)
 
 
 def download(artifact_uri: str) -> str:

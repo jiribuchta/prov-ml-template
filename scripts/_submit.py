@@ -54,10 +54,30 @@ def submit_steps(steps: list[str], cpu: int = 2, memory: str = "4Gi") -> None:
             "export UV_FROZEN=1",
             "uv sync",
             "export PYTHONUNBUFFERED=1",
-            *[
-                f"uv run python -m pipeline pipeline={step} +experiment={EXPERIMENT}"
-                for step in steps
-            ],
+            *_chain_commands(steps),
         ],
         storage=[storage.secure.DATA, storage.secure.PROJECTS],
     )
+
+
+def _chain_commands(steps: list[str]) -> list[str]:
+    """One command per step; each step's printed pins feed the next.
+
+    Steps print their pins as indented 'dataset.*=...' hint lines — extracted
+    from the job log and passed as overrides, so a fresh chain runs without
+    a pre-pinned config and every run is still explicitly defined.
+    """
+    pins = "$(grep -E '^[[:space:]]+dataset\\.' job.log | tr -d ' ')"
+    if len(steps) == 1:
+        return [
+            f"uv run python -m pipeline pipeline={steps[0]} +experiment={EXPERIMENT}"
+        ]
+    commands = ["set -eo pipefail"]
+    for i, step in enumerate(steps):
+        overrides = "" if i == 0 else f" {pins}"
+        tee = "2>&1 | tee job.log" if i == 0 else "2>&1 | tee -a job.log"
+        commands.append(
+            f"uv run python -m pipeline pipeline={step} "
+            f"+experiment={EXPERIMENT}{overrides} {tee}"
+        )
+    return commands

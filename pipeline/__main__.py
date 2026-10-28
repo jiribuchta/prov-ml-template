@@ -21,8 +21,8 @@ Each step lives in its own module next to this file:
   the ground truth; consumes the embed run's artifact.
 
 Downstream steps locate their upstream via ``dataset.mlflow_uris.<step>``
-in the Hydra config — pinned to a specific run, or ``null`` to
-automatically use the latest finished run of that step (tag ``step``).
+in the Hydra config — required, the ``[hint]`` line each step prints;
+no implicit latest-run resolution.
 
 Run with::
 

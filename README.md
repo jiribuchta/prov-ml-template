@@ -18,9 +18,9 @@ files stay where they are on the cluster; nothing is copied or created:
 | `embed_dataset` | `embed_dataset` | PCA-reduces the train samples to 2-D embeddings | consumes the split run's artifact (`inputs`) |
 | `learn` | `learn` | k-means + adjusted Rand index vs ground truth | consumes the embed run's artifact (`inputs`) |
 
-Each step is one MLflow run, tagged `step=<name>`. Downstream steps find their
-upstream via `dataset.mlflow_uris` in the config (pinned `runs:/...` URI), or
-automatically use the latest finished run of that step.
+Each step is one MLflow run, tagged `step=<name>`. Downstream steps consume
+the run pinned in `dataset.mlflow_uris` in the config — every step prints
+the `[hint]` line to paste; nothing resolves implicitly.
 
 ## Data layout
 
@@ -104,14 +104,23 @@ automatically (set it only if you have no kube config).
 
 ## Run the pipeline
 
-Each command is one step; run them in order:
+Each command is one step; run them in order, pasting each step's printed
+`[hint]` line into the experiment config before the next command:
 
 ```bash
 uv run python -m pipeline pipeline=register_dataset +experiment=provenance_pipeline data_path=/path/to/your/data
+# -> paste the printed dataset.run_id=... into the config, then:
 uv run python -m pipeline pipeline=split_dataset  +experiment=provenance_pipeline
+# -> paste the printed dataset.mlflow_uris.split_dataset=... into the config, then:
 uv run python -m pipeline pipeline=embed_dataset  +experiment=provenance_pipeline
+# -> paste the printed dataset.mlflow_uris.embed_dataset=... into the config, then:
 uv run python -m pipeline pipeline=learn          +experiment=provenance_pipeline
 ```
+
+A step whose pin is missing fails with the same hint — nothing resolves
+implicitly, so a config always names the exact runs it consumed. (The
+whole-chain job in [`scripts/submit_pipeline.py`](scripts/submit_pipeline.py)
+automatically forwards each step's printed pins to the next step.)
 
 Step parameters live in [`configs/pipeline/`](configs/pipeline) (samples, test
 size, PCA dims, cluster count) and can be overridden on the command line:
@@ -122,10 +131,9 @@ uv run python -m pipeline pipeline=learn +experiment=provenance_pipeline pipelin
 
 ### Pinning upstream runs
 
-By default, `embed_dataset`/`learn` consume the **latest** finished run of their
-upstream step. To freeze the chain to specific runs, pin them in
-[`configs/experiment/`](configs/experiment/)
-— every step prints the exact line to paste:
+`embed_dataset`/`learn` consume **exactly** the run pinned in
+`dataset.mlflow_uris` — every step prints the line to paste, and a missing
+pin fails with the same hint:
 
 ```
 [hint] to pin this run for downstream steps, set in the experiment config:
@@ -133,9 +141,8 @@ upstream step. To freeze the chain to specific runs, pin them in
 ```
 
 The dataset itself is defined by its `Dataset_Registry` run: `dataset.run_id`
-pins a specific registration (printed by `register_dataset`); by default,
-`split_dataset` verifies against the latest registration of
-`dataset.name` at `dataset.version`.
+(required) is the `[hint]` line printed by `register_dataset` — a config
+always names the exact dataset it consumed.
 
 ## What to look for in the MLflow UI
 

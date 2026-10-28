@@ -13,11 +13,11 @@ metadata:
 dataset:
   name: toy-blobs
   version: 1.0.0
-  # Pin the Dataset_Registry run defining this dataset (printed by
-  # register_dataset); null = latest registration of name+version.
+  # The Dataset_Registry run defining this dataset — required, paste the
+  # [hint] line printed by register_dataset (no latest-run fallback).
   run_id: null
-  # Pin upstream runs to freeze the chain (URIs are printed by each step);
-  # null = automatically use the latest finished run of the upstream step.
+  # Upstream runs — required, paste the [hint] line printed by each step;
+  # a config always names the exact runs it consumed.
   mlflow_uris:
     split_dataset: null # e.g. runs:/<run_id>/train.csv
     embed_dataset: null # e.g. runs:/<run_id>/embeddings/train.csv

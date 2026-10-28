@@ -26,9 +26,7 @@ from pipeline.common import (
 
 def run(config: DictConfig, logger: MLFlowLogger) -> None:
     step = config.pipeline
-    embed_uri = resolve_upstream(
-        config, "embed_dataset", "embed_dataset", "embeddings/train.csv"
-    )
+    embed_uri = resolve_upstream(config, "embed_dataset")
     embeddings = pd.read_csv(download(embed_uri))
     feature_cols = [c for c in embeddings.columns if c.startswith("pc")]
 
