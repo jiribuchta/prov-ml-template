@@ -316,35 +316,61 @@
 
     <!-- 7 · what changed -->
     <section class="slide">
-      <h2>How it differs from <span style="color:var(--warn)">machine-learning</span> (mlkit only)</h2>
+      <h2>Same workflow — provenance is <b>one call + one config block</b></h2>
       <div class="cols">
-        <div class="arch old">
-          <h3>🧪 RationAI/machine-learning</h3>
-          <div class="box" style="border-style:solid; border-color:#4a3d28">
-            <b>Lightning + Hydra + MLflow + uv</b> — the quickstart this template builds on
+        <div>
+          <h3>🧪 machine-learning — mlkit only</h3>
+          <div class="term">
+            <div class="term-bar"><i></i><i></i><i></i><em>ml/__main__.py — real template code</em></div>
+            <pre><span class="k">@hydra.main</span>(config_path="../configs", config_name="project_name")
+<span class="k">@autolog</span>
+<span class="k">def</span> <span class="p">main</span>(config, logger: MLFlowLogger):
+    seed_everything(config.seed, workers=<span class="k">True</span>)
+    data = hydra.utils.instantiate(config.data, ...)
+    model = hydra.utils.instantiate(config.model, _target_=MetaArch)
+    trainer = hydra.utils.instantiate(config.trainer,
+                                      _target_=Trainer, logger=logger)
+    getattr(trainer, config.mode)(model, datamodule=data)</pre>
           </div>
-          <div style="text-align:center">
-            <span class="mini">ml/ data module</span><span class="mini">mode=fit / validate / test / predict</span><span class="mini">preprocessing/ qc · tiling · masks</span>
+          <div class="card">
+            <p style="font-size:13.5px; margin:4px 0">To trace runs like provenance does, you would write — <b>by hand, every run</b>:</p>
+            <pre>mlflow.set_tag("git_commit", ...)      <span class="c">❌ forget it once, lose the link</span>
+mlflow.log_param("data_path", ...)     <span class="c">❌ a path string — not the files</span>
+mlflow.log_artifact("requirements.txt") <span class="c">❌ hope it's the right env</span>
+<span class="c">❌ no user identity · no dataset fingerprint · nothing</span>
+<span class="c">   verifies the disk · runs don't know their upstream</span></pre>
           </div>
-          <div class="box">📊 mlkit <b>MLFlowLogger</b> — params, metrics, artifacts</div>
-          <div class="box" style="border-color:#4a3d28">❌ runs are <b>isolated</b>: who ran it is just an MLflow username,<br>
-              which files it saw is a path in the config, no upstream links,<br>
-              nothing checks the data on disk</div>
         </div>
-        <div class="arch new">
-          <h3>🧬 prov-ml-template — mlkit <b>+ provenance</b></h3>
-          <div class="box" style="border-style:solid; border-color:#2f4a28">
-            <b>same skeleton</b> — Hydra configs · MLflow via mlkit · experiment YAMLs · kube-jobs
+        <div>
+          <h3>🧬 this template — mlkit <b>+ provenance</b></h3>
+          <div class="term">
+            <div class="term-bar"><i></i><i></i><i></i><em>pipeline/__main__.py — real template code</em></div>
+            <pre><span class="k">@hydra.main</span>(config_path="../configs", config_name="pipeline")
+<span class="k">@autolog</span>
+<span class="k">def</span> <span class="p">main</span>(config, logger: MLFlowLogger):
+    mlflow.set_tag("step", config.pipeline.step)
+    _STEPS[...](config, logger)
+
+<span class="c"># inside every step — the whole change is this one call:</span>
+log_provenance(config=config)   <span class="c"># user · dataset fingerprint</span>
+                                <span class="c"># git commit · image · hardware</span>
+                                <span class="c"># seeds · upstream inputs</span></pre>
           </div>
-          <div class="box" style="border-color:#2f4a28">👤 <b>User_Registry</b> — who ran it (username from the kube config)</div>
-          <div class="box" style="border-color:#2f4a28">🗂️ <b>Dataset_Registry</b> — which files: sizes/mtimes fingerprint,<br>
-              ✂️ split <b>verifies</b> the disk against it before training</div>
-          <div class="box" style="border-color:#2f4a28">🔗 runs <b>chained</b> via <code>input_uris</code> — which run produced what</div>
-          <div class="box" style="border-color:#2f4a28">🛰️ env captured: git commit · image · hardware · <code>job_*</code> tags</div>
+          <div class="card" style="border-color:#2f4a28">
+            <p style="font-size:13.5px; margin:4px 0">…plus <b>one block</b> in the same experiment YAML:</p>
+            <pre><span class="k">pipeline:</span>
+  <span class="k">pattern:</span> '.*\.mrxs$'   <span class="c"># where the samples come from</span>
+<span class="k">dataset:</span>
+  <span class="k">name:</span> mammaprint       <span class="c"># registered + verified</span>
+  <span class="k">version:</span> 1.0.0
+  <span class="k">mlflow_uris:</span> {}        <span class="c"># pin the chain</span></pre>
+          </div>
         </div>
       </div>
-      <p style="text-align:center; color:var(--dim); font-size:14px; margin-top:14px">
-      Result: a <b style="color:var(--good)">W3C PROV document</b> can be assembled from the runs — who ran what, on which data, with which code and environment. Provenance is layered on top of the mlkit backbone, not a rewrite.</p>
+      <p style="text-align:center; color:var(--dim); font-size:14px; margin-top:12px">
+      Nothing else changes: same <code>@hydra.main</code> + <code>@autolog</code> + <code>MLFlowLogger</code> · same <code>configs/experiment/*.yaml</code> ·
+      same <code>uv run python -m … +experiment=…</code> · same kube-jobs — and the one-time
+      <code>create_user</code> / <code>register_dataset</code> steps fill the registries.</p>
     </section>
 
     <!-- 8 · mlflow ui -->
@@ -367,6 +393,8 @@
               <span>per dataset version</span><b><code>file_sizes</code> / <code>file_mtimes</code> — the fingerprint that <code>verify_dataset</code> checks your disk against</b>
             </div>
           </div>
+          <p style="font-size:14.5px; color:var(--good); margin-top:12px">
+          → from these runs, a <b>W3C PROV document</b> can be assembled — who ran what, on which data, with which code and environment.</p>
         </div>
         <div>
           <div class="card" style="border-color:#2f4a28">
