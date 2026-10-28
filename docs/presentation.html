@@ -123,45 +123,8 @@
 
     <!-- 2 · part 1: jobs -->
     <section class="slide">
-      <div class="part"><b>PART 1 · KUBE-JOBS</b><span>every step is a cluster job</span></div>
-      <h2>One script per step → one job per step</h2>
-      <div class="cols">
-        <div style="flex:1.2">
-          <div class="term">
-            <div class="term-bar"><i></i><i></i><i></i><em>pipeline step → kube-job name</em></div>
-            <pre><span class="c"># one job per pipeline step — you submit it as any other job</span>
-<span class="k">split_dataset</span>  →  <span class="p">provenance-split-dataset</span>
-<span class="k">embed_dataset</span>  →  <span class="p">provenance-embed-dataset</span>
-<span class="k">learn</span>          →  <span class="p">provenance-learn</span>
-
-<span class="c"># switch dataset — one line:</span>
-<span class="k">EXPERIMENT</span> = <span class="p">"mammaprint"</span></pre>
-          </div>
-        </div>
-        <div>
-          <div class="card">
-            <h3 style="margin-top:0">🔤 DNS-1123 job names</h3>
-            <p style="font-size:14px">k8s names allow no underscores — jobs are
-            <code>provenance-&lt;step&gt;</code> with hyphens; the pipeline step itself keeps its name.</p>
-          </div>
-          <div class="card" style="margin-top:12px">
-            <h3 style="margin-top:0">🔁 Rerunnable by default</h3>
-            <p style="font-size:14px">The previous job is auto-deleted before submitting —
-            rerun a step as often as you like.</p>
-          </div>
-        </div>
-      </div>
-      <div class="card" style="margin-top:14px">
-        <p style="font-size:14px; margin:4px 0">📦 <b>Inside every job:</b> <code>git clone</code> + checkout →
-        <code>UV_FROZEN=1</code> + <code>uv sync</code> (never refresh the kube-jobs source in-cluster) →
-        run the step · storage mounts for <code>DATA</code> and <code>PROJECTS</code> · CPU/memory limits per step.</p>
-      </div>
-    </section>
-
-    <!-- 3 · part 1: identity + chain -->
-    <section class="slide">
-      <div class="part"><b>PART 1 · KUBE-JOBS</b><span>identity, hardware tags, the chain</span></div>
-      <h2>The job is you — and the whole chain is one job</h2>
+      <div class="part"><b>PART 1 · KUBE-JOBS</b><span>identity, names, the chain</span></div>
+      <h2>Every step is a kube-job — and the job is you</h2>
       <div class="cols">
         <div>
           <div class="card" style="border-color:#2f4a28">
@@ -177,22 +140,24 @@
           </div>
         </div>
         <div>
-          <div class="term">
-            <div class="term-bar"><i></i><i></i><i></i><em>one job, the whole chain</em></div>
-            <pre><span class="c"># or the whole chain as one job:</span>
-<span class="k">split</span> → <span class="k">embed</span> → <span class="k">learn</span>   <span class="c">→ job provenance-chain</span></pre>
+          <div class="card">
+            <h3 style="margin-top:0">🔤 DNS-1123 job names · one line per dataset</h3>
+            <p style="font-size:14px">k8s names allow no underscores — jobs are
+            <code>provenance-&lt;step&gt;</code>: <code>provenance-split-dataset</code>,
+            <code>provenance-embed-dataset</code>…<br>
+            Switching dataset is one line: <code>EXPERIMENT = "mammaprint"</code>.</p>
           </div>
           <div class="card" style="margin-top:12px">
-            <h3 style="margin-top:0">🔗 The chain forwards its own pins</h3>
-            <p style="font-size:14px">Each step prints its <code>[hint]</code> pins; the next step
-            consumes <b>exactly those</b> — a fresh chain runs end-to-end
-            <b>with nothing pasted</b>.</p>
+            <h3 style="margin-top:0">🔗 The whole chain is one job — and forwards its own pins</h3>
+            <p style="font-size:14px"><code>split → embed → learn → job provenance-chain</code>:
+            each step prints its <code>[hint]</code> pins, the next step consumes <b>exactly those</b> —
+            a fresh chain runs end-to-end <b>with nothing pasted</b>.</p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- 4 · part 2: provenance overview -->
+    <!-- 3 · part 2: provenance overview -->
     <section class="slide">
       <div class="part"><b>PART 2 · PROVENANCE</b><span>how it works</span></div>
       <h2>Three registries answer three questions</h2>
@@ -230,7 +195,7 @@
       </div>
     </section>
 
-    <!-- 5 · part 2: the rules -->
+    <!-- 4 · part 2: the rules -->
     <section class="slide">
       <div class="part"><b>PART 2 · PROVENANCE</b><span>the three rules</span></div>
       <h2>What makes it trustworthy</h2>
@@ -272,7 +237,7 @@
       </div>
     </section>
 
-    <!-- 6 · part 3: who does what -->
+    <!-- 5 · part 3: who does what -->
     <section class="slide">
       <div class="part"><b>PART 3 · YOUR WORKFLOW</b><span>who does what</span></div>
       <h2>Two people, one pipeline</h2>
@@ -304,7 +269,7 @@
       </div>
     </section>
 
-    <!-- 7 · part 3: Adam prerequisite -->
+    <!-- 6 · part 3: Adam prerequisite -->
     <section class="slide">
       <div class="part"><b>PART 3 · YOUR WORKFLOW</b><span>prerequisite — Adam</span></div>
       <h2><span class="who adam">ADAM</span>&nbsp; <span class="badge old">PREREQUISITE</span> Register the dataset — once per version</h2>
@@ -348,7 +313,7 @@
       </div>
     </section>
 
-    <!-- 8 · part 3: your prerequisite -->
+    <!-- 7 · part 3: your prerequisite -->
     <section class="slide">
       <div class="part"><b>PART 3 · YOUR WORKFLOW</b><span>prerequisite — you</span></div>
       <h2><span class="who you">YOU</span>&nbsp; <span class="badge new">PREREQUISITE</span> Register yourself — once, ever</h2>
@@ -384,7 +349,7 @@
       </div>
     </section>
 
-    <!-- 9 · part 3: split -->
+    <!-- 8 · part 3: split -->
     <section class="slide">
       <div class="part"><b>PART 3 · YOUR WORKFLOW</b><span>per analysis · step 1</span></div>
       <h2><span class="who you">YOU</span>&nbsp; Split the dataset — one command</h2>
@@ -422,7 +387,7 @@
       </div>
     </section>
 
-    <!-- 10 · part 3: train with mlkit -->
+    <!-- 9 · part 3: train with mlkit -->
     <section class="slide">
       <div class="part"><b>PART 3 · YOUR WORKFLOW</b><span>per analysis · step 2 — the main one</span></div>
       <h2>Train on the splits with mlkit — <b>zero provenance code</b></h2>
@@ -477,7 +442,7 @@ mlflow.log_param("data_path", ...)      <span class="c">❌ a path string — no
       the callback is the only difference, and it is config, not code.</p>
     </section>
 
-    <!-- 11 · mlflow ui + tldr -->
+    <!-- 10 · mlflow ui + tldr -->
     <section class="slide">
       <div class="part"><b>PART 3 · YOUR WORKFLOW</b><span>what you get</span></div>
       <h2>What you get in the MLflow UI</h2>
