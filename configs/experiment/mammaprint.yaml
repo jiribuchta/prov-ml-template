@@ -25,5 +25,5 @@ dataset:
   # Upstream runs — required, paste the [hint] line printed by each step;
   # a config always names the exact runs it consumed.
   mlflow_uris:
-    split_dataset: null # e.g. runs:/<run_id>/train.csv
-    embed_dataset: null # e.g. runs:/<run_id>/embeddings/train.csv
+    split_dataset: null # e.g. mlflow-artifacts:/<exp_id>/<run_id>/artifacts/train.csv
+    embed_dataset: null # e.g. mlflow-artifacts:/<exp_id>/<run_id>/artifacts/embeddings/train.csv

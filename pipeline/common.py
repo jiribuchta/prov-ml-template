@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from contextlib import contextmanager
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import mlflow
 import pandas as pd
@@ -87,14 +87,15 @@ def resolve_upstream(config: DictConfig, key: str) -> str:
 
 
 def download(artifact_uri: str) -> str:
-    """Download an mlflow artifact URI (runs:/...) to a local path."""
+    """Download an mlflow artifact URI to a local path."""
     return str(mlflow.artifacts.download_artifacts(artifact_uri=artifact_uri))
 
 
-def pin_hint(key: str, run_id: str, artifact: str) -> None:
+def pin_hint(key: str, run: Any, artifact: str) -> None:
+    """Print the paste-able pin — the run's artifact URI as MLflow shows it."""
     print(
         f"[hint] to pin this run for downstream steps, set in the experiment config:\n"
-        f"         dataset.mlflow_uris.{key}=runs:/{run_id}/{artifact}"
+        f"         dataset.mlflow_uris.{key}={run.info.artifact_uri.rstrip('/')}/{artifact}"
     )
 
 

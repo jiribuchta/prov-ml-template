@@ -61,4 +61,4 @@ def run(config: DictConfig, logger: MLFlowLogger) -> None:
     print(f"[embed_dataset] {len(embeddings)} samples → {int(step.n_components)} dims")
     run = mlflow.active_run()
     assert run is not None  # @autolog guarantees an active run
-    pin_hint("embed_dataset", run.info.run_id, "embeddings/train.csv")
+    pin_hint("embed_dataset", run, "embeddings/train.csv")

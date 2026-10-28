@@ -129,7 +129,7 @@ pin fails with the same hint:
 
 ```
 [hint] to pin this run for downstream steps, set in the experiment config:
-         dataset.mlflow_uris.split_dataset=runs:/<run_id>/train.csv
+         dataset.mlflow_uris.split_dataset=mlflow-artifacts:/<exp_id>/<run_id>/artifacts/train.csv
 ```
 
 The dataset itself is defined by its registration run: `dataset.run_id`
@@ -137,6 +137,10 @@ The dataset itself is defined by its registration run: `dataset.run_id`
 always names the exact dataset it consumed.
 
 ## Training on the splits with mlkit
+
+> The split steps above are the template's demo producer — your own splitter
+> works too: any run that logs a `train.csv` (wsi_path column, the file list)
+> and tags itself `dataset_run_id` = the registration is a valid split.
 
 To train on this pipeline's output with the standard RationAI stack
 (rationai-mlkit), you write **no provenance code at all** — the pipeline
@@ -150,17 +154,16 @@ trainer:
     - _target_: rationai.mlkit.lightning.callbacks.ProvenanceCallback
       fail_fast: true
       split_uris:                       # ← the bridge to this pipeline
-        train: <split run artifact_uri>/train.csv
-        test:  <split run artifact_uri>/test.csv
+        train: mlflow-artifacts:/<exp_id>/<run_id>/artifacts/train.csv
+        test:  mlflow-artifacts:/<exp_id>/<run_id>/artifacts/test.csv
 ```
 
 With `split_uris`, training **references your split run's artifacts**
 instead of recomputing a split — the two runs chain in MLflow.
 
-One form to know: use the split run's `artifact_uri` (from the MLflow UI, or
-`mlflow.get_run("<run_id>").info.artifact_uri`), not the `runs:/...` form
-the `[hint]` lines print — the callback only downloads
-`mlflow-artifacts:/...` URIs and treats anything else as a local path.
+One form to know: `mlflow-artifacts:/…` — the run's `artifact_uri`, shown
+in the MLflow UI and printed by every `[hint]` line. The callback downloads
+these directly; anything else is treated as a local path.
 
 ## What to look for in the MLflow UI
 

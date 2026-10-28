@@ -88,4 +88,4 @@ def run(config: DictConfig, logger: MLFlowLogger) -> None:
     assert run is not None  # @autolog guarantees an active run
     print(f"[split_dataset] dataset_verified={verification['verified']}")
     print(f"[split_dataset] {len(train)} train / {len(test)} test files")
-    pin_hint("split_dataset", run.info.run_id, "train.csv")
+    pin_hint("split_dataset", run, "train.csv")
