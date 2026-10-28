@@ -284,15 +284,15 @@
         <div style="flex:1.2">
           <div class="steps-big" style="font-size:14px">
             <div class="big"><span><b>Data is on the cluster</b> — any file type (<code>.mrxs</code>, <code>.svs</code>…),
-            any folder shape, with your cohort csv saved as <code>manifest.csv</code> in it.</span></div>
-            <div class="big"><span><b>Run one call</b> — the provenance lib, no repo needed, values as arguments:
+            any folder shape, plus the cohort csv that lists the slides.</span></div>
+            <div class="big"><span><b>Run one call</b> — the provenance lib, no repo needed:
               <pre style="margin-top:6px"><span class="you">$</span> uv run --with git+https://github.com/RationAI/provenance python -c "
 from rationai.provenance import register_dataset
-print(register_dataset('/mnt/data/.../mammaprint',
-      dataset_name='mammaprint', experiment_name='Mammaprint'))"
+print(register_dataset('/mnt/data/.../mammaprint/slides.csv',
+      path_column='slide_path', experiment_name='Mammaprint'))"
 <span class="adam">f94f159b…</span></pre></span></div>
-            <div class="big"><span><b>Fingerprint stored</b> — the registration run in the project's
-            experiment records the folder, name + version.</span></div>
+            <div class="big"><span><b>Fingerprint stored</b> — <code>manifest.csv</code> written next to the csv;
+            the registration run in the project's experiment records the folder, name + version.</span></div>
             <div class="big"><span><b>Share it</b> — the <code>run_id</code>, or whoever analyses finds the run in MLflow.</span></div>
           </div>
         </div>
@@ -300,20 +300,19 @@ print(register_dataset('/mnt/data/.../mammaprint',
           <div class="card" style="border-color:#4a3d28">
             <h3 style="margin-top:0">What it needs → what it produces</h3>
             <p style="font-size:13.5px; margin:6px 0"><b>needs:</b> the data on the cluster +
-            <code>manifest.csv</code> in the folder + three arguments —
-            <code>dataset_dir</code>, <code>dataset_name</code>, <code>experiment_name</code> ·
-            version defaults to <code>1.0.0</code></p>
+            the cohort csv + three arguments — <code>csv</code>, <code>path_column</code>,
+            <code>experiment_name</code> · version defaults to <code>1.0.0</code></p>
             <p style="font-size:13.5px; margin:6px 0"><b>produces:</b> a registration run
             <b>in the project's experiment</b> with the dataset fingerprint (file sizes + mtimes)
             · the <code>run_id</code> to share</p>
           </div>
           <div class="card" style="margin-top:12px">
-            <h3 style="margin-top:0">manifest.csv — the cohort table</h3>
+            <h3 style="margin-top:0">The cohort csv</h3>
             <p style="font-size:13.5px; margin:6px 0">📊 usually the <b>cohort table that ships with the data</b> —
-            <b>only a path column is needed</b> (<code>wsi_path</code> / <code>path</code> / <code>slide</code>)</p>
+            <b>only a path column is needed</b> (<code>slide_path</code> / <code>path</code> / <code>wsi_path</code> / <code>slide</code>)</p>
             <p style="font-size:13.5px; margin:6px 0">🏷️ an optional <code>cancer</code> column with the classes —
-            needed only when you'll classify · 📁 paths absolute or relative,
-            <b>registered in place, nothing copied</b></p>
+            needed only when you'll classify · 📁 <code>manifest.csv</code> is written next to it,
+            <b>data registered in place, nothing copied</b></p>
           </div>
         </div>
       </div>

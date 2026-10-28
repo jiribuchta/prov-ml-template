@@ -1,0 +1,23 @@
+logger:
+  _target_: rationai.mlkit.lightning.loggers.MLFlowLogger
+  experiment_name: Dataset Mammaprint
+  run_name: split_dataset
+  tags:
+    mlflow.note.content: dataset init
+data_path: data/demo
+metadata:
+  experiment_name: Dataset Mammaprint
+  run_name: split_dataset
+  description: dataset init
+dataset:
+  name: mammaprint
+  version: 1.0.0
+  run_id: 50b083254bf14d059be77c4834f5ed3c
+  mlflow_uris:
+    split_dataset: null
+    embed_dataset: null
+pipeline:
+  step: split_dataset
+  test_size: 0.2
+  seed: 42
+  source: slides.csv
