@@ -1,0 +1,23 @@
+logger:
+  _target_: rationai.mlkit.lightning.loggers.MLFlowLogger
+  experiment_name: ${metadata.experiment_name}
+  run_name: ${metadata.run_name}
+  tags:
+    mlflow.note.content: ${metadata.description}
+data_path: data/demo
+metadata:
+  experiment_name: Dataset Mammaprint
+  run_name: learn
+  description: dataset init
+dataset:
+  name: mammaprint
+  version: 1.0.0
+  run_id: 4a59c13604d342178c0a8039acc6a81c
+  mlflow_uris:
+    split_dataset: runs:/4c9e27948a004fff9b146b7e26610385/train.csv
+    embed_dataset: runs:/1f9aa8b3ece74a3a87bf358b920c91d4/embeddings/train.csv
+pipeline:
+  step: learn
+  n_clusters: 3
+  seed: 42
+  source: slides.csv

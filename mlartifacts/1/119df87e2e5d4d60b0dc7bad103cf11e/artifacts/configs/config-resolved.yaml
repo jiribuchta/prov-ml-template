@@ -1,0 +1,19 @@
+logger:
+  _target_: rationai.mlkit.lightning.loggers.MLFlowLogger
+  experiment_name: Mammaprint
+  run_name: register_dataset
+  tags:
+    mlflow.note.content: ''
+data_path: data/demo
+metadata:
+  experiment_name: Mammaprint
+  run_name: register_dataset
+  description: ''
+dataset:
+  name: mammaprint
+  version: 1.0.0
+  run_id: null
+  mlflow_uris: {}
+pipeline:
+  step: register_dataset
+  source: samples.csv

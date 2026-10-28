@@ -7,6 +7,6 @@ pipeline:
   step: register_dataset
   # The one csv with the slide paths — e.g. the cohort table that ships with
   # the data. A column named path / slide / file / wsi_path (or the table's
-  # only column) holds the paths (absolute, or relative to data_path); an
-  # optional label / cancer column holds integer labels.
+  # only column) holds the paths (absolute, or relative to data_path).
+  # Labels are not registered — they stay in the cohort csv itself.
   source: samples.csv

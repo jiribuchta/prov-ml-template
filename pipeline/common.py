@@ -98,6 +98,12 @@ def pin_hint(key: str, run_id: str, artifact: str) -> None:
     )
 
 
+def pick_column(table: pd.DataFrame, candidates: tuple[str, ...]) -> str | None:
+    """Column whose (stripped, lowercased) name is in *candidates*."""
+    columns = {str(c).strip().lower(): c for c in table.columns}
+    return next((columns[c] for c in candidates if c in columns), None)
+
+
 def read_source(source: str) -> pd.DataFrame:
     """Read the source table with sample paths (csv or xlsx)."""
     if source.endswith(".csv"):

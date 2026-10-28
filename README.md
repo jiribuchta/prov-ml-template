@@ -36,14 +36,12 @@ uv run python -m pipeline pipeline=register_dataset \
     pipeline.source=slides.csv dataset.name=mammaprint
 ```
 
-A column named `path` / `slide` / `file` / `wsi_path` (or the table's only
-column) holds the paths; an optional `label` / `cancer` column holds
-integer labels (absent → all `0`, and split won't stratify). Missing files
-fail the step. Filenames must be unique across the whole folder (the MLflow
-dataset registry keys files by name).
-
 The data itself is never copied or modified — it is registered in place,
-only `manifest.csv` (the file list) is written into `data_path`.
+only `manifest.csv` (the file list, paths only) is written into `data_path`.
+
+Labels are not part of registration — they stay in the cohort csv itself,
+in whatever column/format it has. `split_dataset` takes them from there
+(a `cancer` / `label` column, matched by row order) for stratification.
 
 `embed_dataset`/`learn` operate on per-sample feature files (one row of feature
 values per file) — for image/WSI data, insert your own featurization step

@@ -3,6 +3,10 @@
 Each sample file goes wholly into one side (no file is split across train
 and test). Only the lists become run artifacts — the data itself stays on
 disk in ``data_path`` (too big to copy for real datasets).
+
+Labels are not part of registration (the manifest is paths-only) — they
+are taken from the cohort csv that registered the dataset, matched by
+row order.
 """
 
 from __future__ import annotations
@@ -24,7 +28,9 @@ from pipeline.common import (
     PATH_COLUMN,
     data_root,
     dataset_run_id,
+    pick_column,
     pin_hint,
+    read_source,
 )
 
 
@@ -46,6 +52,20 @@ def run(config: DictConfig, logger: MLFlowLogger) -> None:
     )
 
     manifest = pd.read_csv(manifest_path)
+
+    # labels live in the cohort csv that registered the dataset, not in the
+    # manifest — registration recorded where it is
+    # shortcut: row order matches (registration wrote the manifest from it)
+    reg = mlflow.get_run(dataset_run_id(config))
+    cohort = read_source(
+        str(Path(reg.data.params["dataset_root"]) / reg.data.params["source_csv"])
+    )
+    label_col = pick_column(cohort, ("cancer", "label"))
+    if label_col and len(cohort) != len(manifest):
+        raise ValueError("cohort csv changed since registration — re-register")
+    manifest[LABEL_COLUMN] = (
+        cohort[label_col].astype(int).to_numpy() if label_col else 0
+    )
     stratify = manifest[LABEL_COLUMN] if manifest[LABEL_COLUMN].nunique() > 1 else None
     train, test = train_test_split(
         manifest,

@@ -253,7 +253,7 @@
           <p style="font-size:14.5px">No special role — <b>whoever brings the data registers it.</b></p>
           <div class="steps-big" style="font-size:14px">
             <div class="big"><span>Runs <code>register_dataset</code> — this <b>defines</b> the dataset:<br>
-            <span style="color:var(--dim)">the manifest (which files + labels) and the fingerprint (file sizes + mtimes)</span></span></div>
+            <span style="color:var(--dim)">the manifest (which files) and the fingerprint (file sizes + mtimes)</span></span></div>
             <div class="big"><span>The <code>dataset.run_id</code> is afterwards available in MLflow<br>
             <span style="color:var(--dim)">the registration run, in the project's experiment — whoever analyses finds it there</span></span></div>
           </div>
@@ -310,9 +310,9 @@ print(register_dataset('/mnt/data/.../mammaprint/slides.csv',
             <h3 style="margin-top:0">The cohort csv</h3>
             <p style="font-size:13.5px; margin:6px 0">📊 usually the <b>cohort table that ships with the data</b> —
             <b>only a path column is needed</b> (<code>slide_path</code> / <code>path</code> / <code>wsi_path</code> / <code>slide</code>)</p>
-            <p style="font-size:13.5px; margin:6px 0">🏷️ an optional <code>cancer</code> column with the classes —
-            needed only when you'll classify · 📁 <code>manifest.csv</code> is written next to it,
-            <b>data registered in place, nothing copied</b></p>
+            <p style="font-size:13.5px; margin:6px 0">🏷️ <b>labels are not registered</b> — classes stay in the cohort table
+            itself, in whatever format it has · 📁 <code>manifest.csv</code> (paths only) is written
+            next to it, <b>data registered in place, nothing copied</b></p>
           </div>
         </div>
       </div>

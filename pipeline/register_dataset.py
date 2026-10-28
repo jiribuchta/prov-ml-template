@@ -3,9 +3,10 @@
 The data itself is never copied or modified — it stays where it is on the
 cluster. ``pipeline.source`` is the cohort csv (usually the one that ships
 with the data): the column with the sample paths is auto-detected
-(``wsi_path`` / ``path`` / ``slide`` / ``slide_path`` / ``file``), a
-``cancer`` / ``label`` column is optional. The registration — reading the
-csv, writing ``manifest.csv`` next to it, fingerprinting the files — is
+(``wsi_path`` / ``path`` / ``slide`` / ``slide_path`` / ``file``).
+Labels are not registered — they stay in the cohort csv itself.
+The registration — reading the csv, writing the paths-only
+``manifest.csv`` next to it, fingerprinting the files — is
 done by ``rationai-provenance``; this step only adds the config plumbing.
 """
 
