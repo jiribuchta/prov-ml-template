@@ -252,9 +252,10 @@
           <h3 style="margin-top:0">📦 Anyone with a dataset <span class="badge old">ONCE PER DATASET</span></h3>
           <p style="font-size:14.5px">No special role — <b>whoever brings the data registers it.</b></p>
           <div class="steps-big" style="font-size:14px">
-            <div class="big"><span>Puts the data on the cluster<br><span style="color:var(--dim)">e.g. <code>/mnt/data/MOU/breast/mammaprint</code></span></span></div>
-            <div class="big"><span>Runs <code>register_dataset</code> — <b>one command, values inline, no YAML</b> — this <b>defines</b> the dataset (fingerprint: file sizes + mtimes)</span></div>
-            <div class="big"><span>Shares the printed <code>dataset.run_id</code> — whoever analyses pins it</span></div>
+            <div class="big"><span>Runs <code>register_dataset</code> — this <b>defines</b> the dataset:<br>
+            <span style="color:var(--dim)">the manifest (which files + labels) and the fingerprint (file sizes + mtimes)</span></span></div>
+            <div class="big"><span>The <code>dataset.run_id</code> is afterwards available in MLflow<br>
+            <span style="color:var(--dim)">the registration run, in the project's experiment — whoever analyses finds it there</span></span></div>
           </div>
         </div>
         <div class="card" style="border-color:#2f4a28">
