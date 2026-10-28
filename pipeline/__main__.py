@@ -13,8 +13,8 @@ Each step lives in its own module next to this file:
   manager): register the files already in ``data_path`` as a dataset
   (in place — nothing is copied or created; the provenance
   ``register_dataset`` call records file sizes/mtimes → ``Dataset_Registry``).
-  Samples come from a source table (csv/xlsx), a ``pipeline.pattern`` regex
-  on the folder, or one class subfolder per label.
+  Samples come from one csv with the slide paths (``pipeline.source``)
+  — e.g. the cohort table that ships with the data.
 * ``split_dataset``  — verify the data on disk against the registration
   (``verify_dataset``), then split the FILES into train/test lists
   (each sample file wholly on one side; only the lists are logged).

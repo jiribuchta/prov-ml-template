@@ -12,18 +12,9 @@ metadata:
 data_path: /mnt/data/MOU/breast/mammaprint # e.g. /mnt/data/projects/.../mammaprint
 
 pipeline:
-  # Pick ONE input shape for register_dataset (first match wins):
-  # 1. the csv/xlsx describing the data (path_column required, label_column optional):
-  #   source: cohort.xlsx
-  #   path_column: slide
-  #   label_column: label
-  # 2. a regex over the folder (named 'label' group = classes, else parent folder):
-  #   pattern: '^(?P<label>class_\d+)/.*\.csv$'
-  # 3. neither — the folder itself, one class subfolder per label.
-  source: null
-  pattern: '.*\.mrxs$'
-  path_column: null
-  label_column: null
+  # One csv with the slide paths (see configs/pipeline/register_dataset.yaml)
+  # — e.g. the cohort table that ships with the data:
+  source: slides.csv
 
 dataset:
   name: mammaprint # e.g. mammaprint

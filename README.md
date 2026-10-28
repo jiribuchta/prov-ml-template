@@ -25,58 +25,28 @@ the `[hint]` line to paste; nothing resolves implicitly.
 
 ## Data layout
 
-Three input shapes for `register_dataset` (first match wins):
-
-**1. A table with paths** (the usual case — e.g. a slide folder plus the
-cohort csv/xlsx that usually ships with the data and describes it).
-`data_path` points at the folder with the files, the table lists them:
-
-```bash
-uv run python -m pipeline pipeline=register_dataset +experiment=provenance_pipeline \
-    data_path=/mnt/data/.../mammaprint \
-    pipeline.source=/mnt/data/.../mammaprint/cohort.xlsx \
-    pipeline.path_column=slide pipeline.label_column=label
-```
-
-Paths may be absolute or relative to `data_path` (missing files fail the
-step); labels must be integers (`label_column: null` → all `0`, and split
-won't stratify).
-
-**2. A regex** (`pipeline.pattern`) — give the folder and what to find:
+`register_dataset` takes **one csv with the slide paths** — e.g. a slide
+folder plus the cohort csv that usually ships with the data and describes
+it. `data_path` points at the folder with the files, the csv lists them
+(absolute, or relative to `data_path`):
 
 ```bash
 uv run python -m pipeline pipeline=register_dataset +experiment=provenance_pipeline \
-    data_path=/mnt/data/.../slides \
-    'pipeline.pattern=.*\.svs$'
+    data_path=/mnt/data/.../mammaprint pipeline.source=slides.csv
 ```
 
-The regex matches paths relative to `data_path` (recursively; `manifest.csv`
-and hidden files are skipped). Classes come from a named `label` group when
-present, otherwise from the parent folder (files directly in `data_path` get
-label `0`). Regexes with Hydra special characters (`<`, `>`, `{`…) need an
-inner layer of quotes:
+A column named `path` / `slide` / `file` / `wsi_path` (or the table's only
+column) holds the paths; an optional `label` / `cancer` column holds
+integer labels (absent → all `0`, and split won't stratify). Missing files
+fail the step. Filenames must be unique across the whole folder (the MLflow
+dataset registry keys files by name).
 
-```bash
-"pipeline.pattern='^(?P<label>class_\d+)/.*\.csv$'"
-```
-
-**3. The folder itself** (`source`/`pattern`: null) — one subfolder per
-class, any file type:
-
-```
-<data_path>/
-├── class_0/
-│   └── sample.csv
-└── class_1/
-    └── sample.csv
-```
-
-Filenames must be unique across the whole folder (the MLflow dataset
-registry keys files by name).
+The data itself is never copied or modified — it is registered in place,
+only `manifest.csv` (the file list) is written into `data_path`.
 
 `embed_dataset`/`learn` operate on per-sample feature files (one row of feature
 values per file) — for image/WSI data, insert your own featurization step
-there. No data at hand? Generate the demo layout (shape 1) and run the
+there. No data at hand? Generate the demo layout and run the
 whole pipeline:
 
 ```bash
@@ -113,8 +83,8 @@ Expected of whoever owns the data (for us, Adam Kukučka) — no analysis can
 run before it.
 
 **Needs:** the data on the cluster + the experiment YAML's data entries
-(`data_path`, `pipeline.pattern` or `pipeline.source`, `dataset.name`+
-`version`). **Produces:** `manifest.csv` in `data_path`, a `Dataset_Registry`
+(`data_path`, `pipeline.source` — the csv with the slide paths —
+`dataset.name`+`version`). **Produces:** `manifest.csv` in `data_path`, a `Dataset_Registry`
 run with the dataset fingerprint (file sizes/mtimes), and the `run_id` to
 hand to the users:
 

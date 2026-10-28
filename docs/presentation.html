@@ -186,7 +186,7 @@
   <span class="k">callbacks:</span>
     - <span class="p">_target_:</span> rationai.mlkit.lightning.callbacks.ProvenanceCallback
       <span class="k">fail_fast:</span> true        <span class="c"># abort if disk ≠ fingerprint</span>
-      <span class="k">split_uris:</span> …       <span class="c"># your split run — chains the runs</span></pre>
+      <span class="k">split_uris:</span> …       <span class="c"># your split run — chains + verifies</span></pre>
           </div>
           <p style="font-size:13.5px; color:var(--dim); margin-top:8px"><b style="color:var(--good)">Zero provenance code</b> — the callback logs user · dataset fingerprint ·
           git commit · image · hardware · seeds · upstream inputs.</p>
@@ -235,7 +235,8 @@
         <div class="card">
           <p style="font-size:14.5px; margin:4px 0">🧪 <b>Verification failure aborts?</b> In the pipeline
           steps it tags <code>dataset_verified=False</code> and continues; in mlkit training
-          (<code>ProvenanceCallback</code>) set <code>fail_fast: true</code> to abort.</p>
+          (<code>ProvenanceCallback</code> + <code>split_uris</code>) the split run is followed to its
+          registration and the disk re-checked — <code>fail_fast: true</code> aborts.</p>
         </div>
       </div>
     </section>
@@ -285,7 +286,7 @@
             <div class="big"><span><b>Copy an experiment YAML</b> and fill in the three data things:
               <pre style="margin-top:6px"><span class="k">data_path:</span> /mnt/data/.../mammaprint
 <span class="k">pipeline:</span>
-  <span class="k">pattern:</span> '.*\.mrxs$'   <span class="c"># how to find the samples</span>
+  <span class="k">source:</span> slides.csv    <span class="c"># the csv with the slide paths</span>
 <span class="k">dataset:</span>
   <span class="k">name:</span> mammaprint        <span class="c"># + version</span></pre></span></div>
             <div class="big"><span><b>Run one command</b> — manifest is built, fingerprint stored:
@@ -299,18 +300,17 @@
           <div class="card" style="border-color:#4a3d28">
             <h3 style="margin-top:0">What it needs → what it produces</h3>
             <p style="font-size:13.5px; margin:6px 0"><b>needs:</b> the data on the cluster + 3 YAML entries —
-            <code>data_path</code>, <code>pattern</code>/<code>source</code>, <code>name</code>+<code>version</code></p>
+            <code>data_path</code>, <code>source</code> (the csv with the slide paths), <code>name</code>+<code>version</code></p>
             <p style="font-size:13.5px; margin:6px 0"><b>produces:</b> <code>manifest.csv</code> · a <code>Dataset_Registry</code> run
             with the dataset fingerprint (file sizes + mtimes) · the <code>run_id</code> to share</p>
           </div>
           <div class="card" style="margin-top:12px">
-            <h3 style="margin-top:0">Three ways to point at the samples</h3>
-            <p style="font-size:13.5px; margin:6px 0">📊 <b>Cohort table</b> — the csv/xlsx that ships with the data:<br>
-            <code>source: cohort.xlsx</code> + <code>path_column</code> / <code>label_column</code></p>
-            <p style="font-size:13.5px; margin:6px 0">🔎 <b>Regex</b> — folder + “what to find”:
-            <code>pattern: '.*\.mrxs$'</code><br>
-            <span style="color:var(--dim)">label = named group <code>(?P&lt;label&gt;…)</code> or parent folder · recursive</span></p>
-            <p style="font-size:13.5px; margin:6px 0">🌳 <b>Folders</b> — one subfolder per class, any file type</p>
+            <h3 style="margin-top:0">The csv with the slide paths</h3>
+            <p style="font-size:13.5px; margin:6px 0">📊 usually the <b>cohort table that ships with the data</b> —
+            a <code>path</code> / <code>slide</code> / <code>wsi_path</code> column (or the only column) holds the
+            paths, an optional <code>label</code> / <code>cancer</code> column the classes</p>
+            <p style="font-size:13.5px; margin:6px 0">📁 paths absolute or relative to <code>data_path</code> —
+            missing files fail the step · <b>registered in place, nothing copied</b></p>
           </div>
         </div>
       </div>
@@ -430,8 +430,9 @@ mlflow.log_param("data_path", ...)      <span class="c">❌ a path string — no
           </div>
           <div class="card" style="border-color:#2f4a28">
             <p style="font-size:13.5px; margin:4px 0">That block logs <b>user · dataset fingerprint · git commit ·
-            docker image · hardware · seeds · input_uris</b> — your training run chains to the split run,
-            nothing is re-split or copied, <code>fail_fast</code> aborts on a broken dataset.</p>
+            docker image · hardware · seeds · input_uris</b> — your training run chains to the split run and
+            re-verifies the data on disk against its registration; nothing is re-split or copied,
+            <code>fail_fast</code> aborts on a broken dataset.</p>
           </div>
           <div class="card" style="margin-top:12px">
             <p style="font-size:13.5px; margin:4px 0">⚠️ URI form: use the split run's <code>artifact_uri</code>

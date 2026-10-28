@@ -1,8 +1,9 @@
 """Write a demo dataset in the layout the pipeline expects.
 
 Feature files (one row of feature values per file) grouped in class
-subfolders, plus ``samples.csv`` — a source table with paths and labels, the
-shape real data usually comes in (e.g. a slide folder + a cohort table)::
+subfolders, plus ``samples.csv`` — the csv with the sample paths and
+labels, the shape real data usually comes in (e.g. a slide folder + the
+cohort table that ships with it)::
 
     <out>/class_0/class_0_0000.csv
     <out>/class_1/class_1_0001.csv
@@ -13,8 +14,7 @@ Try the full pipeline without real data::
 
     uv run python scripts/make_demo_data.py --out data/demo
     uv run python -m pipeline pipeline=register_dataset +experiment=provenance_pipeline \
-        pipeline.source=data/demo/samples.csv pipeline.path_column=file \
-        pipeline.label_column=category
+        data_path=data/demo
 """
 
 from __future__ import annotations
@@ -50,9 +50,8 @@ def main() -> None:
         destination = out / rel
         destination.parent.mkdir(parents=True, exist_ok=True)
         np.savetxt(destination, vector.reshape(1, -1), delimiter=",")
-        records.append({"file": rel, "category": int(label)})
-    # source table on purpose uses arbitrary column names — the create step
-    # maps them via pipeline.path_column / pipeline.label_column
+        records.append({"wsi_path": rel, "cancer": int(label)})
+    # column names match the manifest register_dataset builds from them
     pd.DataFrame(records).to_csv(out / "samples.csv", index=False)
     print(f"[demo data] {len(records)} samples in {args.classes} classes → {out}/")
 

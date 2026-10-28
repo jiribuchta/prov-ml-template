@@ -5,14 +5,8 @@ metadata:
 
 pipeline:
   step: register_dataset
-  # Where the sample list comes from (first match wins):
-  #   source:   a table (csv/xlsx) whose path_column lists the sample files —
-  #             e.g. a slide folder + the cohort csv/xlsx describing it
-  #   pattern:  regex on paths relative to data_path; a named `label` group
-  #             assigns classes, otherwise the parent folder is the class
-  #   null:     the data folder itself, one class subfolder per label
-  source: null
-  # e.g. '^(?P<label>class_\d+)/.*\.csv$' or plain '.*\.svs$'
-  pattern: null
-  path_column: null # table mode: column with the sample paths (required)
-  label_column: null # table mode: column with integer labels; null = all 0
+  # The one csv with the slide paths — e.g. the cohort table that ships with
+  # the data. A column named path / slide / file / wsi_path (or the table's
+  # only column) holds the paths (absolute, or relative to data_path); an
+  # optional label / cancer column holds integer labels.
+  source: samples.csv
