@@ -3,18 +3,23 @@
 The data itself is never copied or modified — it stays where it is on the
 cluster; only ``manifest.csv`` (the file list) is written into ``data_path``.
 
-``pipeline.source`` selects the input shape:
+``pipeline.source`` / ``pipeline.pattern`` select the input shape (first
+match wins):
 
-* a table (csv/xlsx) whose ``path_column`` lists the sample files
-  (absolute, or relative to ``data_path``); the optional
-  ``label_column`` holds integer labels (``0`` when absent) —
-  e.g. a slide folder + an xlsx cohort table,
-* ``null``: the data folder itself, one class subfolder per label,
-  ``<data_path>/<class>/<file>``.
+* ``source``: a table (csv/xlsx) whose ``path_column`` lists the sample
+  files (absolute, or relative to ``data_path``); the optional
+  ``label_column`` holds integer labels (``0`` when absent) — e.g. a slide
+  folder + the cohort xlsx that usually ships with the data,
+* ``pattern``: a regex on paths relative to ``data_path``; a named
+  ``label`` group assigns classes, otherwise the parent folder is the class
+  (files directly in ``data_path`` get label ``0``),
+* both ``null``: the data folder itself, one class subfolder per label,
+  ``<data_path>/<class>/<file>`` (any file type).
 """
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import mlflow
@@ -30,6 +35,40 @@ from pipeline.common import (
     read_source,
     suspended_run,
 )
+
+
+def _from_folder(root: Path, pattern: str | None) -> tuple[list[Path], list[int]]:
+    """Collect samples from the folder itself (no source table)."""
+    files: list[Path]
+    label_strs: list[str]
+    if pattern is None:
+        # one class subfolder per label, any file type
+        files = sorted(p for p in root.glob("*/*") if p.is_file())
+        label_strs = [f.parent.name for f in files]
+    else:
+        regex = re.compile(pattern)
+        files, label_strs = [], []
+        for f in sorted(root.rglob("*")):
+            rel = f.relative_to(root)
+            if (
+                not f.is_file()
+                or f.name == "manifest.csv"  # ours, written into data_path
+                or any(part.startswith(".") for part in rel.parts)
+            ):
+                continue
+            m = regex.search(rel.as_posix())
+            if m is None:
+                continue
+            files.append(f)
+            if "label" in regex.groupindex:
+                label_strs.append(str(m.group("label")))
+            elif f.parent != root:
+                label_strs.append(f.parent.name)
+            else:  # directly in data_path, no class folder
+                label_strs.append("0")
+    classes = sorted(set(label_strs))
+    class_index = {name: i for i, name in enumerate(classes)}
+    return files, [class_index[s] for s in label_strs]
 
 
 def run(config: DictConfig, logger: MLFlowLogger) -> None:
@@ -49,17 +88,15 @@ def run(config: DictConfig, logger: MLFlowLogger) -> None:
             else [0] * len(paths)
         )
     else:
-        files = sorted(root.glob("*/*.csv"))
-        if not files:
+        paths, labels = _from_folder(
+            root, str(step.pattern) if step.pattern else None
+        )
+        if not paths:
             raise FileNotFoundError(
                 f"No sample files in '{root}' — expected the layout "
-                "<data_path>/<class>/<file>, or set pipeline.source to a "
-                "table with paths."
+                "<data_path>/<class>/<file>, or set pipeline.source / "
+                "pipeline.pattern."
             )
-        classes = sorted({f.parent.name for f in files})
-        class_index = {name: i for i, name in enumerate(classes)}
-        paths = files
-        labels = [class_index[f.parent.name] for f in files]
 
     missing = [str(p) for p in paths if not p.is_file()]
     if missing:

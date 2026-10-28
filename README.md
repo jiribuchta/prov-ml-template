@@ -24,11 +24,11 @@ automatically use the latest finished run of that step.
 
 ## Data layout
 
-Two input shapes for `register_dataset`, selected by `pipeline.source`:
+Three input shapes for `register_dataset` (first match wins):
 
-**1. A table with paths** (the usual case — e.g. a slide folder plus a
-cohort table). `data_path` points at the folder with the files, the table
-(csv/xlsx) lists them:
+**1. A table with paths** (the usual case — e.g. a slide folder plus the
+cohort csv/xlsx that usually ships with the data and describes it).
+`data_path` points at the folder with the files, the table lists them:
 
 ```bash
 uv run python -m pipeline pipeline=register_dataset +experiment=provenance_pipeline \
@@ -41,8 +41,26 @@ Paths may be absolute or relative to `data_path` (missing files fail the
 step); labels must be integers (`label_column: null` → all `0`, and split
 won't stratify).
 
-**2. The folder itself** (`source: null`) — one subfolder per class, any
-file type:
+**2. A regex** (`pipeline.pattern`) — give the folder and what to find:
+
+```bash
+uv run python -m pipeline pipeline=register_dataset +experiment=provenance_pipeline \
+    data_path=/mnt/data/.../slides \
+    'pipeline.pattern=.*\.svs$'
+```
+
+The regex matches paths relative to `data_path` (recursively; `manifest.csv`
+and hidden files are skipped). Classes come from a named `label` group when
+present, otherwise from the parent folder (files directly in `data_path` get
+label `0`). Regexes with Hydra special characters (`<`, `>`, `{`…) need an
+inner layer of quotes:
+
+```bash
+"pipeline.pattern='^(?P<label>class_\d+)/.*\.csv$'"
+```
+
+**3. The folder itself** (`source`/`pattern`: null) — one subfolder per
+class, any file type:
 
 ```
 <data_path>/

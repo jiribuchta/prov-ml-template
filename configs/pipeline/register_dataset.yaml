@@ -1,14 +1,18 @@
 # @package _global_
-# Build the manifest from the data and register the dataset.
+# Register the files in data_path as a dataset (in place — nothing is copied).
 metadata:
   run_name: register_dataset
 
 pipeline:
   step: register_dataset
-  # Where the sample list comes from:
-  #   a table (csv/xlsx) whose path_column lists the sample files —
-  #     e.g. /mnt/data/.../cohort.xlsx
-  #   null = the data folder itself, one class subfolder per label
+  # Where the sample list comes from (first match wins):
+  #   source:   a table (csv/xlsx) whose path_column lists the sample files —
+  #             e.g. a slide folder + the cohort csv/xlsx describing it
+  #   pattern:  regex on paths relative to data_path; a named `label` group
+  #             assigns classes, otherwise the parent folder is the class
+  #   null:     the data folder itself, one class subfolder per label
   source: null
+  # e.g. '^(?P<label>class_\d+)/.*\.csv$' or plain '.*\.svs$'
+  pattern: null
   path_column: null # table mode: column with the sample paths (required)
   label_column: null # table mode: column with integer labels; null = all 0
