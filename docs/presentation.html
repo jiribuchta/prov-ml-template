@@ -583,6 +583,8 @@ mlflow.log_param("data_path", ...)      <span class="c">❌ a path string — no
             <h3 style="margin-top:0">🩹 Real (WSI) data</h3>
             <p style="font-size:14px">• Registration &amp; split work on any file type (<code>.mrxs</code>, <code>.svs</code>…).</p>
             <p style="font-size:14px">• <code>embed_dataset</code>/<code>learn</code> expect per-sample <b>feature files</b> — insert your own WSI featurization step there.</p>
+            <p style="font-size:14px; color:var(--good); font-weight:600">⚠️ the features must be <b>registered too</b> —
+            same <code>register_dataset</code> call over the features folder · verified at training like any data.</p>
           </div>
         </div>
       </div>
