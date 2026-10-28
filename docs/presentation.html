@@ -331,30 +331,40 @@ print(register_dataset('/mnt/data/.../mammaprint/slides.csv',
       <div class="cols">
         <div>
           <div class="term">
-            <div class="term-bar"><i></i><i></i><i></i><em>terminal</em></div>
-            <pre><span class="c"># 1. create the environment</span>
-<span class="you">$</span> uv sync
-
-<span class="c"># 2. point at your MLflow server</span>
+            <div class="term-bar"><i></i><i></i><i></i><em>terminal — the only setup</em></div>
+            <pre><span class="c"># point at your MLflow server</span>
 <span class="you">$</span> export MLFLOW_TRACKING_URI=...</pre>
+          </div>
+          <p style="font-size:14px; color:var(--dim); margin-top:10px">
+          <code>User_Registry</code> is a shared experiment — one run per person.</p>
+          <div class="card" style="margin-top:10px; border-color:#4a3d28">
+            <p style="font-size:13.5px; margin:4px 0">⚠️ <b style="color:var(--warn)">username must be exactly your
+            Rancher username</b> — kube-jobs derives <code>JOB_USER</code> from your kube config and provenance looks
+            your runs up by it — a mismatch orphans every run you start.</p>
+          </div>
+          <div class="card" style="margin-top:10px">
+            <p style="font-size:13.5px; margin:4px 0">📤 <b>easier, from the repo:</b> submit it as a kube-job —
+            <code>uv run python scripts/create_user.py</code> — username automatic, no typo possible.</p>
           </div>
         </div>
         <div>
           <div class="term">
             <div class="term-bar"><i></i><i></i><i></i><em>terminal</em></div>
-            <pre><span class="c"># 3. register yourself — once, ever</span>
-<span class="you">$</span> uv run python -m pipeline \
-      pipeline=create_user +experiment=mammaprint
+            <pre><span class="c"># register yourself — once, ever · the provenance lib, no repo</span>
+<span class="you">$</span> uv run --with git+https://github.com/RationAI/provenance \
+      python -c "
+from rationai.provenance import register_new_user
+register_new_user(username='jiri-buchta', real_name='Jiri Buchta',
+                  email='j.b@ration.ai', organization='RationAI',
+                  lead_name='Adam Kukučka',
+                  lead_email='a.k@ration.ai')"
 
-<span class="adam">[create_user] registered 'jiri-buchta' → User_Registry</span></pre>
+<span class="adam">[register_new_user] jiri-buchta → run_id=f94f159b…</span></pre>
           </div>
-          <p style="font-size:14px; color:var(--dim); margin-top:10px">
-          Username is automatic — the same one kube-jobs uses (<code>JOB_USER</code> / kube config),
-          so your cluster runs link to you without any setup.</p>
         </div>
       </div>
       <div class="card" style="margin-top:16px">
-        <p style="font-size:13.5px; margin:4px 0"><b>needs:</b> <code>uv</code> + the MLflow server address — no data, no YAML, nothing else<br>
+        <p style="font-size:13.5px; margin:4px 0"><b>needs:</b> <code>uv</code> + the MLflow server address — no data, no YAML<br>
         <b>produces:</b> one run in <code>User_Registry</code> — every run you ever start is linked to you</p>
       </div>
     </section>
