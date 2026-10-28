@@ -202,6 +202,14 @@ tags from the kube-jobs-injected `JOB_*` env vars.
 
 ## Development
 
+### Adding provenance to your own step
+
+`log_provenance(config=config, …)` logs into the **active MLflow run** — it
+fails fast (`RuntimeError: No active MLflow run`) if there is none. The
+`@autolog` decorator on `main` (already in both this and the mlkit template)
+creates that run and injects the logger, so inside a step the function call
+alone is enough; `logger` is optional and falls back to the active run.
+
 ```bash
 uvx ruff check
 uv run mypy .
