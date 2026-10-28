@@ -394,9 +394,54 @@ print(register_dataset('/mnt/data/.../mammaprint/slides.csv',
       </div>
     </section>
 
+    <!-- 8b · part 3: embeddings -->
+    <section class="slide">
+      <div class="part"><b>PART 3 · YOUR WORKFLOW</b><span>per analysis · step 2</span></div>
+      <h2><span class="who you">YOU</span>&nbsp; Embeddings are data too — register them the same way</h2>
+      <div class="cols">
+        <div style="flex:1.35">
+          <div class="term">
+            <div class="term-bar"><i></i><i></i><i></i><em>your featurization job — same shape as tiling</em></div>
+            <pre><span class="c"># your preprocessing job — features land in a folder on the cluster:</span>
+<span class="p">@hydra.main</span>(config_path=<span class="p">"../configs"</span>, config_name=<span class="p">"featurize"</span>)
+<span class="p">@autolog</span>
+<span class="k">def</span> <span class="p">main</span>(config, logger: MLFlowLogger):
+    <span class="k">for</span> slide <span class="k">in</span> train[<span class="p">"wsi_path"</span>]:
+        save(featurize(slide), <span class="p">f"features/{stem(slide)}.npz"</span>)  <span class="c"># the expensive thing</span>
+    features.to_csv(<span class="p">"features.csv"</span>, index=<span class="k">False</span>)   <span class="c"># feature_path — the file list</span>
+
+<span class="c"># embeddings are data → the same registration, as a second call:</span>
+run_id = register_dataset(<span class="p">"features.csv"</span>, path_column=<span class="p">"feature_path"</span>,
+                          dataset_name=<span class="p">"mammaprint-features"</span>,
+                          experiment_name=<span class="p">"Mammaprint"</span>)
+<span class="adam">7c3d41ea…</span></pre>
+          </div>
+          <div class="card" style="margin-top:12px">
+            <p style="font-size:14px; margin:4px 0">🔁 Re-featurized? Register again (new version) — old training runs keep
+            their old pins and stay reproducible.</p>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <h3 style="margin-top:0">Why register them too</h3>
+            <p style="font-size:14px; margin:6px 0">🔥 Embeddings are <b>the expensive thing</b> — you never recompute them casually.
+            They stay in place; only the manifest + fingerprint are stored.</p>
+            <p style="font-size:14px; margin:6px 0">🧬 Same fingerprint as raw data — sizes + mtimes of every feature file</p>
+            <p style="font-size:14px; margin:6px 0">🔎 Training that reads the folder <b>verifies it against this fingerprint</b> —
+            a half-written or deleted feature file fails loudly, not silently</p>
+          </div>
+          <div class="card" style="margin-top:12px; border-color:#2f4a28">
+            <p style="font-size:14px; margin:4px 0">✅ Registration never cared that these files are features, not slides —
+            same call, same rules. 📌 Pin what training reads: this registration's
+            <code>run_id</code> → <code>dataset.run_id</code>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- 9 · part 3: train with mlkit -->
     <section class="slide">
-      <div class="part"><b>PART 3 · YOUR WORKFLOW</b><span>per analysis · step 2 — the main one</span></div>
+      <div class="part"><b>PART 3 · YOUR WORKFLOW</b><span>per analysis · step 3 — the main one</span></div>
       <h2>Train on the splits with mlkit — <b>zero provenance code</b></h2>
       <div class="cols">
         <div>
@@ -428,7 +473,7 @@ mlflow.log_param("data_path", ...)      <span class="c">❌ a path string — no
   <span class="k">callbacks:</span>
     - <span class="p">_target_:</span> rationai.mlkit.lightning.callbacks.ProvenanceCallback
       <span class="k">fail_fast:</span> true             <span class="c"># abort if disk ≠ fingerprint</span>
-      <span class="k">dataset_run_id:</span> ${dataset.run_id}  <span class="c"># ← the pin from step 1</span>
+      <span class="k">dataset_run_id:</span> ${dataset.run_id}  <span class="c"># ← the registration training reads</span>
       <span class="k">split_uris:</span>                <span class="c"># ← copied from your split run</span>
         <span class="k">train:</span> mlflow-artifacts:/0/6b2c…/artifacts/train.csv
         <span class="k">test:</span>  mlflow-artifacts:/0/6b2c…/artifacts/test.csv</pre>
