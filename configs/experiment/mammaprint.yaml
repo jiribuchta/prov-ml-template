@@ -5,11 +5,11 @@ defaults:
 # Your dataset: copy this file, fill in the ???s, rename to e.g. mammaprint.yaml,
 # and run steps with +experiment=<name> (scripts/_submit.py: EXPERIMENT).
 metadata:
-  experiment_name: ??? # MLflow experiment all pipeline steps log to
-  description: ??? # shown as the MLflow run note
+  experiment_name: Dataset Mammaprint # MLflow experiment all pipeline steps log to
+  description: dataset init # shown as the MLflow run note
 
 # Folder with the data files (registered in place — nothing is copied).
-data_path: ??? # e.g. /mnt/data/projects/.../mammaprint
+data_path: /mnt/data/MOU/breast/mammaprint # e.g. /mnt/data/projects/.../mammaprint
 
 pipeline:
   # Pick ONE input shape for register_dataset (first match wins):
@@ -21,12 +21,12 @@ pipeline:
   #   pattern: '^(?P<label>class_\d+)/.*\.csv$'
   # 3. neither — the folder itself, one class subfolder per label.
   source: null
-  pattern: null
+  pattern: '.*\.mrxs$'
   path_column: null
   label_column: null
 
 dataset:
-  name: ??? # e.g. mammaprint
+  name: mammaprint # e.g. mammaprint
   version: 1.0.0
   # Pin upstream runs to freeze the chain (URIs are printed by each step);
   # null = automatically use the latest finished run of the upstream step.
