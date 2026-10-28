@@ -113,7 +113,7 @@
           </div>
           <div class="card" style="flex:1">
             <h3 style="margin-top:0">3 · 👤 your workflow</h3>
-            <p style="font-size:14px; color:var(--dim)">Anyone can register a dataset,<br>anyone can analyse — split once,<br>train with mlkit.</p>
+            <p style="font-size:14px; color:var(--dim)">Adam brings the data, you<br>create your project's dataset,<br>analyse — split once, train.</p>
           </div>
         </div>
         <p class="sub" style="font-size:15px">Same MLflow, same Hydra, same kube-jobs — your mlkit training gets full provenance from one callback block.</p>
@@ -236,10 +236,9 @@
           </div>
         </div>
         <div class="card">
-          <p style="font-size:14.5px; margin:4px 0">🧪 <b>Verification failure aborts?</b> In the pipeline
-          steps it tags <code>dataset_verified=False</code> and continues; in mlkit training
-          (<code>ProvenanceCallback</code> + <code>split_uris</code>) the split run is followed to its
-          registration and the disk re-checked — <code>fail_fast: true</code> aborts.</p>
+          <p style="font-size:14.5px; margin:4px 0">🧪 <b>Verification failure aborts?</b> Pipeline
+          steps tag <code>dataset_verified=False</code> and continue; mlkit training follows the split to its
+          registration and re-checks the disk — <code>fail_fast: true</code> aborts.</p>
         </div>
       </div>
     </section>
@@ -264,15 +263,15 @@
           <p style="font-size:14.5px">You analyse — <b>your dataset is yours:</b> created from the cluster data, per project.</p>
           <div class="steps-big" style="font-size:14px">
             <div class="big"><span><b>Prerequisite, once, ever:</b> <code>create_user</code> — registers you in <code>User_Registry</code></span></div>
-            <div class="big"><span><b>Per project:</b> create your dataset — a cohort csv with your slides — and <b>register it
-            into MLflow</b>: <code>register_dataset</code> defines it <span style="color:var(--dim)">(the manifest + fingerprint;
-            the run sits in your project's experiment)</span></span></div>
+            <div class="big"><span><b>Per project:</b> create your dataset — a cohort csv with your slides — and
+            <b>register it</b>: <code>register_dataset</code> defines it <span style="color:var(--dim)">(manifest +
+            fingerprint, the run in your project's experiment)</span></span></div>
             <div class="big"><span><b>Per analysis:</b> split your way — log it to MLflow, pin it in the config — then <b>train with mlkit</b></span></div>
             <div class="big"><span><b>Zero provenance code</b> in your training app — one <code>ProvenanceCallback</code> block in the trainer config · results in the MLflow UI</span></div>
           </div>
         </div>
       </div>
-      <div class="card" style="margin-top:16px">
+      <div class="card" style="margin-top:12px">
         <p style="font-size:13.5px; margin:4px 0">🖥️ <b>Who runs all this?</b> — <b>infra</b>
         <span style="color:var(--dim)">· the MLflow server (with its <code>User_Registry</code> experiment) already runs —
         every slide that follows only adds runs to it; nobody here sets anything up</span></p>
@@ -290,7 +289,8 @@
             <div class="big"><span><b>Data is on the cluster</b> — Adam's job done — pick your project's slides
             into a cohort csv (any file type, any folder shape).</span></div>
             <div class="big"><span><b>Run one call</b> — the provenance lib, no repo needed:
-              <pre style="margin-top:6px"><span class="you">$</span> uv run --with git+https://github.com/RationAI/provenance python -c "
+              <pre style="margin-top:6px"><span class="you">$</span> uv run --with git+https://github.com/RationAI/provenance \
+      python -c "
 from rationai.provenance import register_dataset
 print(register_dataset('/mnt/data/.../mammaprint/slides.csv',
       path_column='slide_path', experiment_name='Mammaprint'))"
@@ -313,7 +313,7 @@ print(register_dataset('/mnt/data/.../mammaprint/slides.csv',
           </div>
           <div class="card" style="margin-top:12px">
             <h3 style="margin-top:0">The cohort csv</h3>
-            <p style="font-size:13.5px; margin:6px 0">📊 usually the <b>cohort table that ships with the data</b> —
+            <p style="font-size:13.5px; margin:6px 0">📊 <b>yours:</b> the slides of your project —
             <b>only a path column is needed</b> (<code>slide_path</code> / <code>path</code> / <code>wsi_path</code> / <code>slide</code>)</p>
             <p style="font-size:13.5px; margin:6px 0">🏷️ <b>labels are not registered</b> — classes stay in the cohort table
             itself, in whatever format it has · 📁 <code>manifest.csv</code> (paths only) is written
@@ -372,7 +372,7 @@ print(register_dataset('/mnt/data/.../mammaprint/slides.csv',
 <span class="p">@autolog</span>
 <span class="k">def</span> <span class="p">main</span>(config, logger: MLFlowLogger):
     train, test = my_split(cohort)             <span class="c"># any method, any framework</span>
-    train.to_csv(<span class="p">"train.csv"</span>, index=<span class="k">False</span>)     <span class="c"># wsi_path column — the file list</span>
+    train.to_csv(<span class="p">"train.csv"</span>, index=<span class="k">False</span>)     <span class="c"># wsi_path — the file list</span>
     logger.log_artifact(<span class="p">"train.csv"</span>)
 
 <span class="c"># then pin it in the trainer config (the run_id is there from step 1):</span>
@@ -411,13 +411,13 @@ print(register_dataset('/mnt/data/.../mammaprint/slides.csv',
 <span class="p">@autolog</span>
 <span class="k">def</span> <span class="p">main</span>(config, logger: MLFlowLogger):
     <span class="k">for</span> slide <span class="k">in</span> train[<span class="p">"wsi_path"</span>]:
-        save(featurize(slide), <span class="p">f"features/{stem(slide)}.npz"</span>)  <span class="c"># the expensive thing</span>
+        save(featurize(slide), <span class="p">f"features/{stem(slide)}.npz"</span>)  <span class="c"># costly</span>
     features.to_csv(<span class="p">"features.csv"</span>, index=<span class="k">False</span>)   <span class="c"># feature_path — the file list</span>
 
 <span class="c"># embeddings are data → the same registration, as a second call:</span>
-run_id = register_dataset(<span class="p">"features.csv"</span>, path_column=<span class="p">"feature_path"</span>,
-                          dataset_name=<span class="p">"mammaprint-features"</span>,
-                          experiment_name=<span class="p">"Mammaprint"</span>)
+run_id = register_dataset(
+    <span class="p">"features.csv"</span>, path_column=<span class="p">"feature_path"</span>,
+    dataset_name=<span class="p">"mammaprint-features"</span>, experiment_name=<span class="p">"Mammaprint"</span>)
 <span class="adam">7c3d41ea…</span></pre>
           </div>
           <div class="card" style="margin-top:12px">
@@ -457,15 +457,16 @@ run_id = register_dataset(<span class="p">"features.csv"</span>, path_column=<sp
 <span class="k">def</span> <span class="p">main</span>(config, logger: MLFlowLogger):
     seed_everything(config.seed, workers=<span class="k">True</span>)
     data = hydra.utils.instantiate(config.data, ...)
-    model = hydra.utils.instantiate(config.model, _target_=MetaArch)
+    model = hydra.utils.instantiate(config.model,
+                                    _target_=MetaArch)
     trainer = hydra.utils.instantiate(config.trainer,
-                                      _target_=Trainer, logger=logger)
+                                _target_=Trainer, logger=logger)
     getattr(trainer, config.mode)(model, datamodule=data)</pre>
           </div>
           <div class="card">
             <p style="font-size:13.5px; margin:4px 0">Provenance like this, you would write <b>by hand, every run</b>:</p>
-            <pre>mlflow.set_tag("git_commit", ...)       <span class="c">❌ forget it once, lose the link</span>
-mlflow.log_param("data_path", ...)      <span class="c">❌ a path string — not the files</span>
+            <pre>mlflow.set_tag("git_commit", ...)  <span class="c">❌ forget once, lose the link</span>
+mlflow.log_param("data_path", ...)  <span class="c">❌ a path, not the files</span>
 <span class="c">❌ no user identity · no fingerprint · nothing verifies the disk</span></pre>
           </div>
         </div>
@@ -477,16 +478,15 @@ mlflow.log_param("data_path", ...)      <span class="c">❌ a path string — no
   <span class="k">callbacks:</span>
     - <span class="p">_target_:</span> rationai.mlkit.lightning.callbacks.ProvenanceCallback
       <span class="k">fail_fast:</span> true             <span class="c"># abort if disk ≠ fingerprint</span>
-      <span class="k">dataset_run_id:</span> ${dataset.run_id}  <span class="c"># ← the registration training reads</span>
+      <span class="k">dataset_run_id:</span> ${dataset.run_id}  <span class="c"># ← what training reads</span>
       <span class="k">split_uris:</span>                <span class="c"># ← copied from your split run</span>
         <span class="k">train:</span> mlflow-artifacts:/0/6b2c…/artifacts/train.csv
         <span class="k">test:</span>  mlflow-artifacts:/0/6b2c…/artifacts/test.csv</pre>
           </div>
           <div class="card" style="border-color:#2f4a28">
             <p style="font-size:13.5px; margin:4px 0">That block logs <b>user · dataset fingerprint · git commit ·
-            docker image · hardware · seeds · input_uris</b> — your training run chains to the split run and
-            re-verifies the data on disk against its registration; nothing is re-split or copied,
-            <code>fail_fast</code> aborts on a broken dataset.</p>
+            docker image · hardware · seeds · input_uris</b> — the run chains to your split and
+            re-verifies the disk against its registration; <code>fail_fast</code> aborts on a broken dataset.</p>
           </div>
           <div class="card" style="margin-top:12px">
             <p style="font-size:13.5px; margin:4px 0">✅ URI form: <code>mlflow-artifacts:/…</code> — the run's
@@ -502,50 +502,48 @@ mlflow.log_param("data_path", ...)      <span class="c">❌ a path string — no
     <!-- 9b · part 3: the whole picture -->
     <section class="slide">
       <div class="part"><b>PART 3 · YOUR WORKFLOW</b><span>the whole picture</span></div>
-      <h2>The whole process — from data gathering to model</h2>
+      <h2 style="margin-bottom:12px">The whole process — from data gathering to model</h2>
       <div style="display:flex; gap:6px">
-        <div class="step"><span class="ico">🛰️</span><b>data gathering</b>
+        <div class="step" style="padding:10px 8px 8px"><span class="ico" style="font-size:26px">🛰️</span><b>data gathering</b>
           <span>slides on the cluster — any type, any shape</span>
-          <span><b style="color:var(--warn)">🧑‍🔬</b> Adam Kukučka · his whole job</span></div>
+          <span><b style="color:var(--warn)">🧑‍🔬</b> Adam Kukučka</span></div>
         <div class="arrow">→</div>
-        <div class="step"><span class="ico">🔐</span><b>register_dataset</b>
+        <div class="step" style="padding:10px 8px 8px"><span class="ico" style="font-size:26px">🔐</span><b>register_dataset</b>
           <span>fingerprint — file sizes + mtimes, manifest</span>
           <span><b style="color:var(--good)">👤</b> per project · MLflow run</span></div>
         <div class="arrow">→</div>
-        <div class="step"><span class="ico">✂️</span><b>split</b>
+        <div class="step" style="padding:10px 8px 8px"><span class="ico" style="font-size:26px">✂️</span><b>split</b>
           <span>train/test csvs — your method, any framework</span>
           <span><b style="color:var(--good)">👤</b> per analysis · MLflow run</span></div>
         <div class="arrow">→</div>
-        <div class="step"><span class="ico">🧬</span><b>featurize</b>
+        <div class="step" style="padding:10px 8px 8px"><span class="ico" style="font-size:26px">🧬</span><b>featurize</b>
           <span style="color:var(--good); font-weight:600">features in a folder — registered the same way</span>
           <span><b style="color:var(--good)">👤</b> per analysis · MLflow run</span></div>
         <div class="arrow">→</div>
-        <div class="step"><span class="ico">🧠</span><b>mlkit train</b>
-          <span>callback verifies disk vs fingerprint, records env</span>
+        <div class="step" style="padding:10px 8px 8px"><span class="ico" style="font-size:26px">🧠</span><b>mlkit train</b>
+          <span>verifies disk vs fingerprint · records env</span>
           <span><b style="color:var(--good)">👤</b> per analysis · MLflow run</span></div>
         <div class="arrow">→</div>
-        <div class="step"><span class="ico">🏆</span><b>final model</b>
+        <div class="step" style="padding:10px 8px 8px"><span class="ico" style="font-size:26px">🏆</span><b>final model</b>
           <span>checkpoints + metrics in MLflow</span>
           <span><b style="color:var(--good)">👤</b> ready to finalize</span></div>
       </div>
-      <div style="text-align:center; color:var(--dim); font-size:13.5px; margin:12px 0">when you have the final model ▼</div>
+      <div style="text-align:center; color:var(--dim); font-size:13.5px; margin:6px 0">when you have the final model ▼</div>
       <div style="display:flex; gap:6px">
-        <div class="step" style="flex:1; border-style:dashed; border-color:var(--accent)"><span class="ico">📜</span><b>finalization script</b>
-          <span>one call on the final run — walks the whole chain through the pins, then:</span>
-          <span>🏷️ marks the used images <code>provenance_needed</code> in Harbor</span>
-          <span>🧾 creates the provenance</span>
-          <span>🏆 marks the model <b>final</b> in MLflow</span>
+        <div class="step" style="flex:1; border-style:dashed; border-color:var(--accent); padding:10px 8px 8px"><span class="ico" style="font-size:26px">📜</span><b>finalization script</b>
+          <span>one call on the final run — walks the chain through the pins:</span>
+          <span>🏷️ used images → <code>provenance_needed</code> in Harbor · 🧾 provenance created · 🏆 model <b>final</b> in MLflow</span>
           <span><b style="color:var(--good)">👤</b> you run it · <span class="badge new">COMING TO THE LIB</span></span></div>
         <div class="arrow">→</div>
-        <div class="step" style="flex:1; border-color:#2f4a28"><span class="ico">🏛️</span><b>PROV storage</b>
+        <div class="step" style="flex:1; border-color:#2f4a28; padding:10px 8px 8px"><span class="ico" style="font-size:26px">🏛️</span><b>PROV storage</b>
           <span>the whole provenance saved — who, on which data, with which code + environment</span>
           <span><b style="color:var(--dim)">🖥️</b> one place to query, forever</span></div>
       </div>
-      <div class="card" style="margin-top:14px">
-        <p style="font-size:14.5px; margin:4px 0">🏛️ Registration → split → features → training — every run in the chain,
+      <div class="card" style="margin-top:10px">
+        <p style="font-size:14.5px; margin:4px 0">🏛️ Every run in the chain — registration → split → features → training —
         resolved from the final run's pins, assembled into a <b>W3C PROV document</b> and stored.
-        <span style="color:var(--dim)">The MLflow runs stay the source of truth; the PROV storage is the queryable copy
-        — “who trained this model, on which data, with which code” has one answer, one place.</span></p>
+        <span style="color:var(--dim)">MLflow stays the source of truth; the PROV storage is the queryable copy
+        — one answer, one place.</span></p>
       </div>
     </section>
 
@@ -571,7 +569,8 @@ mlflow.log_param("data_path", ...)      <span class="c">❌ a path string — no
             </div>
           </div>
           <p style="font-size:14.5px; color: var(--good); margin-top:12px">
-          → from these runs, a <b>W3C PROV document</b> can be assembled — who ran what, on which data, with which code and environment.</p>
+          → the <b>finalization script</b> assembles these runs into a <b>W3C PROV document</b> —
+          who ran what, on which data — and stores it in the PROV storage.</p>
         </div>
         <div>
           <div class="card" style="border-color:#2f4a28">
