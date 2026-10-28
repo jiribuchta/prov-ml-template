@@ -10,13 +10,14 @@ The demo pipeline: **create_user → register_dataset → split_dataset → embe
 its own k8s job script in [`scripts/`](scripts). The data is used **in place** —
 files stay where they are on the cluster; nothing is copied or created:
 
-| Step | Module / script | What it does | Provenance shown |
+| Prerequisite · who | Module / script | What it does | Provenance shown |
 | --- | --- | --- | --- |
-| `create_user` | `create_user` | registers you in the `User_Registry` (one-time) | identity params linked to all your runs |
-| `register_dataset` | `register_dataset` | registers existing files (a table with paths, csv/xlsx, or the folder itself) as a dataset — in place | `register_dataset` → file sizes/mtimes in `Dataset_Registry` |
-| `split_dataset` | `split_dataset` | verifies the data on disk against the registration, splits the **files** into train/test lists | `verify_dataset`, `dataset_verified` tag, `train.csv`/`test.csv` artifacts |
-| `embed_dataset` | `embed_dataset` | PCA-reduces the train samples to 2-D embeddings | consumes the split run's artifact (`inputs`) |
-| `learn` | `learn` | k-means + adjusted Rand index vs ground truth | consumes the embed run's artifact (`inputs`) |
+| `create_user` · you, once | `create_user` | registers you in the `User_Registry` (one-time) | identity params linked to all your runs |
+| `register_dataset` · data manager, once per dataset | `register_dataset` | registers existing files (a table with paths, csv/xlsx, or the folder itself) as a dataset — in place | `register_dataset` → file sizes/mtimes in `Dataset_Registry` |
+| **Pipeline step** | | | |
+| `split_dataset` · you | `split_dataset` | verifies the data on disk against the registration, splits the **files** into train/test lists | `verify_dataset`, `dataset_verified` tag, `train.csv`/`test.csv` artifacts |
+| `embed_dataset` · you | `embed_dataset` | PCA-reduces the train samples to 2-D embeddings | consumes the split run's artifact (`inputs`) |
+| `learn` · you | `learn` | k-means + adjusted Rand index vs ground truth | consumes the embed run's artifact (`inputs`) |
 
 Each step is one MLflow run, tagged `step=<name>`. Downstream steps consume
 the run pinned in `dataset.mlflow_uris` in the config — every step prints
@@ -82,19 +83,23 @@ whole pipeline:
 uv run python scripts/make_demo_data.py --out data/demo
 ```
 
-## Setup
+## Prerequisites
+
+Two steps happen **before** any analysis, each run once by the person
+responsible for it:
+
+### 1. Register yourself — user, once ever
 
 ```bash
 uv sync                      # create the environment
 export MLFLOW_TRACKING_URI=...   # your MLflow server
 export MLFLOW_USER=...           # your username
-```
 
-Register yourself once (one `User_Registry` run, links all your runs to you):
-
-```bash
 uv run python -m pipeline pipeline=create_user +experiment=provenance_pipeline
 ```
+
+**Needs:** `uv` + the MLflow server address. **Produces:** one `User_Registry`
+run — every run you ever start is linked to you.
 
 The identity fields (real name, email, organization, lead) live in
 [`configs/pipeline/create_user.yaml`](configs/pipeline/create_user.yaml).
@@ -102,14 +107,29 @@ The username defaults to your kube-config username (`JOB_USER` in-cluster) —
 the exact name provenance looks runs up by, so cluster runs link to you
 automatically (set it only if you have no kube config).
 
-## Run the pipeline
+### 2. Register the dataset — data manager, once per dataset version
 
-Each command is one step; run them in order, pasting each step's printed
-`[hint]` line into the experiment config before the next command:
+Expected of whoever owns the data (for us, Adam Kukučka) — no analysis can
+run before it.
+
+**Needs:** the data on the cluster + the experiment YAML's data entries
+(`data_path`, `pipeline.pattern` or `pipeline.source`, `dataset.name`+
+`version`). **Produces:** `manifest.csv` in `data_path`, a `Dataset_Registry`
+run with the dataset fingerprint (file sizes/mtimes), and the `run_id` to
+hand to the users:
 
 ```bash
 uv run python -m pipeline pipeline=register_dataset +experiment=provenance_pipeline data_path=/path/to/your/data
-# -> paste the printed dataset.run_id=... into the config, then:
+# -> paste the printed dataset.run_id=... into the config
+```
+
+## Run the pipeline
+
+Prerequisites done, the pipeline is three steps. Run them in order, pasting
+each step's printed `[hint]` line into the experiment config before the next
+command:
+
+```bash
 uv run python -m pipeline pipeline=split_dataset  +experiment=provenance_pipeline
 # -> paste the printed dataset.mlflow_uris.split_dataset=... into the config, then:
 uv run python -m pipeline pipeline=embed_dataset  +experiment=provenance_pipeline

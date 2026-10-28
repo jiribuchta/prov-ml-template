@@ -1,14 +1,17 @@
 """End-to-end provenance pipeline.
 
-create_user → register_dataset → split_dataset → embed_dataset → learn.
+Prerequisites (each run once by the person responsible): create_user →
+register_dataset. The pipeline itself: split_dataset → embed_dataset → learn.
 
 Every step runs as an MLflow run (mlkit ``@autolog``) and records its
 provenance via [rationai-provenance](https://github.com/RationAI/provenance).
 Each step lives in its own module next to this file:
 
-* ``create_user``    — register yourself in the ``User_Registry`` (once).
-* ``register_dataset`` — register the files already in ``data_path`` as a
-  dataset (in place — nothing is copied or created; the provenance
+* ``create_user``    — prerequisite, once per user: register yourself in the
+  ``User_Registry``.
+* ``register_dataset`` — prerequisite, once per dataset version (data
+  manager): register the files already in ``data_path`` as a dataset
+  (in place — nothing is copied or created; the provenance
   ``register_dataset`` call records file sizes/mtimes → ``Dataset_Registry``).
   Samples come from a source table (csv/xlsx), a ``pipeline.pattern`` regex
   on the folder, or one class subfolder per label.

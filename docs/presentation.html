@@ -110,11 +110,13 @@
         <div style="font-size:56px; line-height:1">🧬</div>
         <h1>prov-ml-template</h1>
         <p class="sub">From dataset to results — <b>who does what</b>, step by step.</p>
-        <div class="flow" style="max-width:980px; margin:34px auto 6px">
+        <p style="margin:26px 0 4px; color:var(--dim); font-size:13.5px; letter-spacing:1px">PREREQUISITES — DONE ONCE, BEFORE ANY ANALYSIS</p>
+        <div class="flow" style="max-width:620px; margin:0 auto 4px">
           <div class="step"><span class="ico">👤</span><b>create_user</b><span class="who you">YOU</span><span>once, ever</span></div>
-          <div class="arrow">→</div>
           <div class="step"><span class="ico">🗂️</span><b>register_dataset</b><span class="who adam">ADAM</span><span>once per dataset</span></div>
-          <div class="arrow">→</div>
+        </div>
+        <p style="margin:18px 0 4px; color:var(--dim); font-size:13.5px; letter-spacing:1px">THE PIPELINE — YOUR ANALYSIS</p>
+        <div class="flow" style="max-width:760px; margin:0 auto 4px">
           <div class="step"><span class="ico">✂️</span><b>split_dataset</b><span class="who you">YOU</span><span>per analysis</span></div>
           <div class="arrow">→</div>
           <div class="step"><span class="ico">🧬</span><b>embed_dataset</b><span class="who you">YOU</span><span>per analysis</span></div>
@@ -131,7 +133,7 @@
       <h2>Two people, one pipeline</h2>
       <div class="cols">
         <div class="card" style="border-color:#4a3d28">
-          <h3 style="margin-top:0">📋 Adam Kukučka — data manager <span class="badge old">ONCE PER DATASET</span></h3>
+          <h3 style="margin-top:0">📋 Adam Kukučka — data manager <span class="badge old">PREREQUISITE · ONCE PER DATASET</span></h3>
           <p style="font-size:14.5px">He has the data. <b>Normal users never do this part.</b></p>
           <div class="steps-big" style="font-size:14px">
             <div class="big"><span>Puts the data on the cluster<br><span style="color:var(--dim)">e.g. <code>/mnt/data/MOU/breast/mammaprint</code></span></span></div>
@@ -141,11 +143,11 @@
           </div>
         </div>
         <div class="card" style="border-color:#2f4a28">
-          <h3 style="margin-top:0">👤 You — user <span class="badge new">EVERY ANALYSIS</span></h3>
+          <h3 style="margin-top:0">👤 You — user <span class="badge new">ONE PREREQUISITE, THEN EVERY ANALYSIS</span></h3>
           <p style="font-size:14.5px">You analyse. You never create or move data.</p>
           <div class="steps-big" style="font-size:14px">
-            <div class="big"><span><b>Once, ever:</b> <code>create_user</code> — registers you in <code>User_Registry</code></span></div>
-            <div class="big"><span><b>Per analysis:</b> run <code>split_dataset</code> → <code>embed_dataset</code> → <code>learn</code></span></div>
+            <div class="big"><span><b>Prerequisite, once, ever:</b> <code>create_user</code> — registers you in <code>User_Registry</code></span></div>
+            <div class="big"><span><b>The pipeline, per analysis:</b> run <code>split_dataset</code> → <code>embed_dataset</code> → <code>learn</code></span></div>
             <div class="big"><span>Between steps: <b>paste the printed [hint] line</b> into the same YAML — that is the whole job</span></div>
             <div class="big"><span>Look at results in the MLflow UI</span></div>
           </div>
@@ -159,12 +161,13 @@
 
     <!-- 3 · the pipeline -->
     <section class="slide">
-      <h2>The five steps — and who runs them</h2>
-      <div class="flow">
-        <div class="step"><span class="ico">👤</span><b>create_user</b><span class="who you">YOU</span><span>registers you in<br>User_Registry</span></div>
-        <div class="arrow">→</div>
-        <div class="step"><span class="ico">🗂️</span><b>register_dataset</b><span class="who adam">ADAM</span><span>file sizes/mtimes →<br>Dataset_Registry</span></div>
-        <div class="arrow">→</div>
+      <h2>The pipeline — three steps, all yours</h2>
+      <div class="card" style="padding:8px 16px; margin-bottom:6px">
+        <p style="font-size:14px; margin:4px 0; color:var(--dim)"><b style="color:var(--ink)">Before this:</b> two prerequisites —
+        <span class="who you">YOU</span>&nbsp;<code>create_user</code> (once, ever) ·
+        <span class="who adam">ADAM</span>&nbsp;<code>register_dataset</code> (once per dataset) + he sends you the <code>run_id</code></p>
+      </div>
+      <div class="flow" style="margin-top:12px">
         <div class="step"><span class="ico">✂️</span><b>split_dataset</b><span class="who you">YOU</span><span>verifies data on disk,<br>train/test file lists</span></div>
         <div class="arrow">→</div>
         <div class="step"><span class="ico">🧬</span><b>embed_dataset</b><span class="who you">YOU</span><span>PCA embeddings<br>(your featurizer here)</span></div>
@@ -193,7 +196,8 @@
 
     <!-- 4 · Adam's part -->
     <section class="slide">
-      <h2><span class="who adam">ADAM</span>&nbsp; Register a dataset — once per dataset version</h2>
+      <h2><span class="who adam">ADAM</span>&nbsp; <span class="badge old">PREREQUISITE</span> Register the dataset — once per version</h2>
+      <p class="sub" style="font-size:14.5px; margin-top:0">Expected of Adam, needed by everyone — <b>no analysis can run before it</b>.</p>
       <div class="cols">
         <div style="flex:1.2">
           <div class="steps-big" style="font-size:14px">
@@ -213,7 +217,14 @@
           </div>
         </div>
         <div>
-          <div class="card">
+          <div class="card" style="border-color:#4a3d28">
+            <h3 style="margin-top:0">What it needs → what it produces</h3>
+            <p style="font-size:13.5px; margin:6px 0"><b>needs:</b> the data on the cluster + 3 YAML entries —
+            <code>data_path</code>, <code>pattern</code>/<code>source</code>, <code>name</code>+<code>version</code></p>
+            <p style="font-size:13.5px; margin:6px 0"><b>produces:</b> <code>manifest.csv</code> · a <code>Dataset_Registry</code> run
+            with the dataset fingerprint (file sizes + mtimes) · the <code>run_id</code> he sends you</p>
+          </div>
+          <div class="card" style="margin-top:12px">
             <h3 style="margin-top:0">Three ways to point at the samples</h3>
             <p style="font-size:13.5px; margin:6px 0">📊 <b>Cohort table</b> — the csv/xlsx that ships with the data:<br>
             <code>source: cohort.xlsx</code> + <code>path_column</code> / <code>label_column</code></p>
@@ -232,7 +243,8 @@
 
     <!-- 5 · your setup -->
     <section class="slide">
-      <h2><span class="who you">YOU</span>&nbsp; Setup — once, ever</h2>
+      <h2><span class="who you">YOU</span>&nbsp; <span class="badge new">PREREQUISITE</span> Register yourself — once, ever</h2>
+      <p class="sub" style="font-size:14.5px; margin-top:0">The one thing expected of you before your first analysis — takes a minute.</p>
       <div class="cols">
         <div>
           <div class="term">
@@ -258,11 +270,16 @@
           so your cluster runs link to you without any setup.</p>
         </div>
       </div>
+      <div class="card" style="margin-top:16px">
+        <p style="font-size:13.5px; margin:4px 0"><b>needs:</b> <code>uv</code> + the MLflow server address — no data, no YAML, nothing else<br>
+        <b>produces:</b> one run in <code>User_Registry</code> — every run you ever start is linked to you</p>
+      </div>
     </section>
 
     <!-- 6 · your analysis -->
     <section class="slide">
-      <h2><span class="who you">YOU</span>&nbsp; Run an analysis — the exact loop</h2>
+      <h2><span class="who you">YOU</span>&nbsp; The pipeline — run an analysis, the exact loop</h2>
+      <p class="sub" style="font-size:14.5px; margin-top:0">Prerequisites done — this is the part you repeat for every analysis.</p>
       <div class="cols">
         <div style="flex:1.35">
           <div class="term">
@@ -302,7 +319,7 @@
 
     <!-- 7 · cluster -->
     <section class="slide">
-      <h2><span class="who you">YOU</span>&nbsp; Same steps on the cluster — one job per step</h2>
+      <h2><span class="who you">YOU</span>&nbsp; The pipeline on the cluster — one job per step</h2>
       <div class="cols">
         <div>
           <div class="term">
@@ -314,7 +331,8 @@
           </div>
           <p style="font-size:13.5px;color:var(--dim);margin-top:10px">
           Same paste-the-pin loop, same YAML — the job just runs the command for you.
-          Jobs record <code>job_*</code> tags (cluster, CPU/memory, image).</p>
+          Jobs record <code>job_*</code> tags (cluster, CPU/memory, image).
+          (Adam has <code>scripts/register_dataset.py</code> for his one-time part.)</p>
         </div>
         <div>
           <div class="term">
@@ -422,9 +440,9 @@ log_provenance(config=config)   <span class="c"># user · dataset fingerprint</s
           <div class="card" style="border-color:#2f4a28">
             <h3 style="margin-top:0">TL;DR — who does what</h3>
             <div class="steps-big" style="font-size:14px">
-              <div class="big"><span><span class="who adam">ADAM</span> <b>registers the dataset</b> — YAML + <code>register_dataset</code> + sends you the <code>run_id</code></span></div>
-              <div class="big"><span><span class="who you">YOU</span> <b>register yourself once</b> — <code>create_user</code></span></div>
-              <div class="big"><span><span class="who you">YOU</span> <b>run the analysis</b> — split → embed → learn, pasting each printed <code>[hint]</code> line</span></div>
+              <div class="big"><span><span class="who adam">ADAM</span> <b>prerequisite:</b> registers the dataset — YAML + <code>register_dataset</code> + sends you the <code>run_id</code></span></div>
+              <div class="big"><span><span class="who you">YOU</span> <b>prerequisite:</b> <code>create_user</code> — once, ever</span></div>
+              <div class="big"><span><span class="who you">YOU</span> <b>the pipeline:</b> split → embed → learn, pasting each printed <code>[hint]</code> line</span></div>
             </div>
           </div>
           <div class="card" style="margin-top:12px">
