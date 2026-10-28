@@ -41,7 +41,9 @@ def _username() -> str:
 
 def submit_steps(steps: list[str], cpu: int = 2, memory: str = "4Gi") -> None:
     """Submit one kube-job running the given pipeline steps sequentially."""
-    job_name = "provenance-pipeline" if len(steps) > 1 else f"provenance-{steps[0]}"
+    # k8s names are DNS-1123 — no underscores (the step itself keeps them)
+    step = steps[0].replace("_", "-")
+    job_name = "provenance-pipeline" if len(steps) > 1 else f"provenance-{step}"
     # rerunnable: remove the previous run's job (submit_job 409s on existing
     # names; it suffixes the job name with the username itself)
     delete_job(f"{job_name}-{_username()}", public=False)
