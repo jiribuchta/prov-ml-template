@@ -124,13 +124,18 @@ uv run python -m pipeline pipeline=learn +experiment=provenance_pipeline pipelin
 
 By default, `embed_dataset`/`learn` consume the **latest** finished run of their
 upstream step. To freeze the chain to specific runs, pin them in
-[`configs/experiment/provenance_pipeline.yaml`](configs/experiment/provenance_pipeline.yaml)
+[`configs/experiment/`](configs/experiment/)
 — every step prints the exact line to paste:
 
 ```
 [hint] to pin this run for downstream steps, set in the experiment config:
          dataset.mlflow_uris.split_dataset=runs:/<run_id>/train.csv
 ```
+
+The dataset itself is defined by its `Dataset_Registry` run: `dataset.run_id`
+pins a specific registration (printed by `register_dataset`); by default,
+`split_dataset` verifies against the latest registration of
+`dataset.name` at `dataset.version`.
 
 ## What to look for in the MLflow UI
 

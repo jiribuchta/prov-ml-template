@@ -56,6 +56,31 @@ def data_root(config: DictConfig) -> Path:
     return Path(str(config.data_path)).resolve()
 
 
+def dataset_run_id(config: DictConfig) -> str | None:
+    """The Dataset_Registry run that defines this dataset.
+
+    ``dataset.run_id`` pins a specific registration run; when null, the
+    latest registration of ``dataset.name`` at ``dataset.version`` is used
+    (not the latest overall — other datasets must not hijack verification).
+    """
+    pinned = OmegaConf.select(config, "dataset.run_id")
+    if pinned:
+        return str(pinned)
+    experiment = mlflow.get_experiment_by_name("Dataset_Registry")
+    if experiment is None:
+        return None
+    runs = mlflow.search_runs(
+        [experiment.experiment_id],
+        filter_string=(
+            f"tags.dataset_name = '{config.dataset.name}' "
+            f"and tags.version = '{config.dataset.version}'"
+        ),
+        order_by=["attributes.start_time DESC"],
+        max_results=1,
+    )
+    return None if runs.empty else str(runs.iloc[0]["run_id"])
+
+
 def resolve_upstream(config: DictConfig, key: str, step: str, artifact: str) -> str:
     """Return the upstream artifact URI from the config or the latest run.
 

@@ -128,3 +128,7 @@ def run(config: DictConfig, logger: MLFlowLogger) -> None:
     mlflow.set_tag("dataset_run_id", dataset_run_id)
     print(f"[register_dataset] {len(manifest)} samples → registered")
     print(f"[register_dataset] labels: {dict(manifest[LABEL_COLUMN].value_counts())}")
+    print(
+        "[hint] to pin this dataset for downstream steps, set in the "
+        f"experiment config:\n         dataset.run_id={dataset_run_id}"
+    )

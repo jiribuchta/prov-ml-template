@@ -15,10 +15,17 @@ import mlflow
 import pandas as pd
 from omegaconf import DictConfig
 from rationai.mlkit.lightning.loggers import MLFlowLogger
-from rationai.provenance import log_provenance, verify_dataset
+from rationai.provenance import log_provenance
+from rationai.provenance.dataset import verify_manifest
 from sklearn.model_selection import train_test_split
 
-from pipeline.common import LABEL_COLUMN, PATH_COLUMN, data_root, pin_hint
+from pipeline.common import (
+    LABEL_COLUMN,
+    PATH_COLUMN,
+    data_root,
+    dataset_run_id,
+    pin_hint,
+)
 
 
 def run(config: DictConfig, logger: MLFlowLogger) -> None:
@@ -26,8 +33,10 @@ def run(config: DictConfig, logger: MLFlowLogger) -> None:
     root = data_root(config)
     manifest_path = root / "manifest.csv"
 
-    verification: dict[str, Any] = verify_dataset(
-        manifest_path=str(manifest_path), data_root=str(root)
+    verification: dict[str, Any] = verify_manifest(
+        manifest_path=str(manifest_path),
+        data_root=str(root),
+        dataset_run_id=dataset_run_id(config),  # pinned or by name/version
     )
     mlflow.set_tags(
         {

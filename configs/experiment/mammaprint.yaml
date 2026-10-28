@@ -28,6 +28,9 @@ pipeline:
 dataset:
   name: mammaprint # e.g. mammaprint
   version: 1.0.0
+  # Pin the Dataset_Registry run defining this dataset (printed by
+  # register_dataset); null = latest registration of name+version.
+  run_id: null
   # Pin upstream runs to freeze the chain (URIs are printed by each step);
   # null = automatically use the latest finished run of the upstream step.
   mlflow_uris:
