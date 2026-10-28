@@ -10,4 +10,13 @@ data_path: data/demo
 metadata:
   experiment_name: ??? # MLflow experiment all pipeline steps log to
   run_name: ??? # set per step by configs/pipeline/<step>.yaml
-  description: ??? # shown as the MLflow run note
+  description: "" # shown as the MLflow run note
+
+# The dataset the steps consume — name/version identify it, run_id and
+# mlflow_uris are pinned by the [hint] lines the steps print (nothing
+# resolves implicitly).
+dataset:
+  name: ???
+  version: 1.0.0
+  run_id: null
+  mlflow_uris: {}

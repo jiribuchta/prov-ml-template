@@ -94,6 +94,8 @@ def run(config: DictConfig, logger: MLFlowLogger) -> None:
             dataset_dir=str(root),
             dataset_name=str(dataset.name),
             version=str(dataset.version),
+            # no dedicated registry — register into the project's experiment
+            experiment_name=str(config.metadata.experiment_name),
         )
     mlflow.set_tag("dataset_run_id", dataset_run_id)
     print(f"[register_dataset] {len(manifest)} samples → registered")

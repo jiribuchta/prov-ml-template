@@ -19,7 +19,7 @@ pipeline:
 dataset:
   name: mammaprint # e.g. mammaprint
   version: 1.0.0
-  # The Dataset_Registry run defining this dataset — required, paste the
+  # The registration run defining this dataset — required, paste the
   # [hint] line printed by register_dataset (no latest-run fallback).
   run_id: null
   # Upstream runs — required, paste the [hint] line printed by each step;

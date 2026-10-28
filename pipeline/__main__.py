@@ -12,7 +12,8 @@ Each step lives in its own module next to this file:
 * ``register_dataset`` — prerequisite, once per dataset version (data
   manager): register the files already in ``data_path`` as a dataset
   (in place — nothing is copied or created; the provenance
-  ``register_dataset`` call records file sizes/mtimes → ``Dataset_Registry``).
+  ``register_dataset`` call records file sizes/mtimes → a registration run
+  in the project's experiment).
   Samples come from one csv with the slide paths (``pipeline.source``)
   — e.g. the cohort table that ships with the data.
 * ``split_dataset``  — verify the data on disk against the registration

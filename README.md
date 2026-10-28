@@ -13,7 +13,7 @@ files stay where they are on the cluster; nothing is copied or created:
 | Prerequisite · who | Module / script | What it does | Provenance shown |
 | --- | --- | --- | --- |
 | `create_user` · you, once | `create_user` | registers you in the `User_Registry` (one-time) | identity params linked to all your runs |
-| `register_dataset` · data manager, once per dataset | `register_dataset` | registers existing files (a table with paths, csv/xlsx, or the folder itself) as a dataset — in place | `register_dataset` → file sizes/mtimes in `Dataset_Registry` |
+| `register_dataset` · data manager, once per dataset | `register_dataset` | registers the files listed in one csv with the slide paths as a dataset — in place | `register_dataset` → file sizes/mtimes in the project's experiment |
 | **Pipeline step** | | | |
 | `split_dataset` · you | `split_dataset` | verifies the data on disk against the registration, splits the **files** into train/test lists | `verify_dataset`, `dataset_verified` tag, `train.csv`/`test.csv` artifacts |
 | `embed_dataset` · you | `embed_dataset` | PCA-reduces the train samples to 2-D embeddings | consumes the split run's artifact (`inputs`) |
@@ -31,8 +31,9 @@ it. `data_path` points at the folder with the files, the csv lists them
 (absolute, or relative to `data_path`):
 
 ```bash
-uv run python -m pipeline pipeline=register_dataset +experiment=provenance_pipeline \
-    data_path=/mnt/data/.../mammaprint pipeline.source=slides.csv
+uv run python -m pipeline pipeline=register_dataset \
+    metadata.experiment_name=MyProject data_path=/mnt/data/.../mammaprint \
+    pipeline.source=slides.csv dataset.name=mammaprint
 ```
 
 A column named `path` / `slide` / `file` / `wsi_path` (or the table's only
@@ -80,16 +81,19 @@ automatically (set it only if you have no kube config).
 ### 2. Register the dataset — data manager, once per dataset version
 
 Expected of whoever owns the data (for us, Adam Kukučka) — no analysis can
-run before it.
+run before it. No experiment YAML is needed — the values go on the command
+line:
 
-**Needs:** the data on the cluster + the experiment YAML's data entries
-(`data_path`, `pipeline.source` — the csv with the slide paths —
-`dataset.name`+`version`). **Produces:** `manifest.csv` in `data_path`, a `Dataset_Registry`
-run with the dataset fingerprint (file sizes/mtimes), and the `run_id` to
-hand to the users:
+**Needs:** the data on the cluster + three values (`data_path`,
+`pipeline.source` — the csv with the slide paths — and `dataset.name`).
+**Produces:** `manifest.csv` in `data_path`, a registration run in the
+project's experiment (`metadata.experiment_name`) with the dataset
+fingerprint (file sizes/mtimes), and the `run_id` to hand to the users:
 
 ```bash
-uv run python -m pipeline pipeline=register_dataset +experiment=provenance_pipeline data_path=/path/to/your/data
+uv run python -m pipeline pipeline=register_dataset \
+    metadata.experiment_name=<project> data_path=/path/to/your/data \
+    pipeline.source=slides.csv dataset.name=<name>
 # -> paste the printed dataset.run_id=... into the config
 ```
 
@@ -130,7 +134,7 @@ pin fails with the same hint:
          dataset.mlflow_uris.split_dataset=runs:/<run_id>/train.csv
 ```
 
-The dataset itself is defined by its `Dataset_Registry` run: `dataset.run_id`
+The dataset itself is defined by its registration run: `dataset.run_id`
 (required) is the `[hint]` line printed by `register_dataset` — a config
 always names the exact dataset it consumed.
 
@@ -162,7 +166,8 @@ the `[hint]` lines print — the callback only downloads
 
 ## What to look for in the MLflow UI
 
-- **Dataset registration** (`Dataset_Registry` experiment): a run per dataset
+- **Dataset registration** (in your project's experiment, run name
+  `Dataset_<name>_<version>`): a run per dataset
   version with `file_sizes` / `file_mtimes` tags — the fingerprint that
   `verify_dataset` checks your disk against.
 - **Pipeline runs** (the experiment named in the config): one run per step.

@@ -57,7 +57,7 @@ def data_root(config: DictConfig) -> Path:
 
 
 def dataset_run_id(config: DictConfig) -> str:
-    """The Dataset_Registry run that defines this dataset (must be pinned).
+    """The registration run that defines this dataset (must be pinned).
 
     ``dataset.run_id`` is printed by ``register_dataset`` — nothing resolves
     implicitly, so a config always names the exact dataset it consumed.
