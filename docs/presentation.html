@@ -170,7 +170,7 @@
         <div class="card">
           <h3 style="margin-top:0">🗂️ dataset registration run — <b>what data</b></h3>
           <p style="font-size:14px">One per dataset version (<code>register_dataset</code>,
-          run by whoever brings the data) — <b>in the project's experiment</b>: the
+          run by the project's analyst) — <b>in the project's experiment</b>: the
           fingerprint — file sizes + mtimes — that later steps verify your disk against.</p>
         </div>
         <div class="card">
@@ -247,26 +247,28 @@
     <!-- 5 · part 3: who does what -->
     <section class="slide">
       <div class="part"><b>PART 3 · YOUR WORKFLOW</b><span>who does what</span></div>
-      <h2>Anyone can register, anyone can analyse</h2>
+      <h2>Adam brings the data — you create your project's dataset</h2>
       <div class="cols">
         <div class="card" style="border-color:#4a3d28">
-          <h3 style="margin-top:0">📦 Anyone with a dataset <span class="badge old">ONCE PER DATASET</span></h3>
-          <p style="font-size:14.5px">No special role — <b>whoever brings the data registers it.</b></p>
+          <h3 style="margin-top:0">🧑‍🔬 Adam Kukučka <span class="badge old">DATA ON THE CLUSTER</span></h3>
+          <p style="font-size:14.5px"><b>Puts the data on the cluster</b> — that is his whole job here.</p>
           <div class="steps-big" style="font-size:14px">
-            <div class="big"><span>Runs <code>register_dataset</code> — this <b>defines</b> the dataset:<br>
-            <span style="color:var(--dim)">the manifest (which files) and the fingerprint (file sizes + mtimes)</span></span></div>
-            <div class="big"><span>The <code>dataset.run_id</code> is afterwards available in MLflow<br>
-            <span style="color:var(--dim)">the registration run, in the project's experiment — whoever analyses finds it there</span></span></div>
+            <div class="big"><span>Any file type (<code>.mrxs</code>, <code>.svs</code>…), any folder shape —<br>
+            <span style="color:var(--dim)">no MLflow, no registration — nothing else for him to do</span></span></div>
+            <div class="big"><span>The files stay in place — every project's dataset points at them<br>
+            <span style="color:var(--dim)">files replaced later? every dataset built on them fails verification — loudly</span></span></div>
           </div>
         </div>
         <div class="card" style="border-color:#2f4a28">
           <h3 style="margin-top:0">👤 You — user <span class="badge new">ONE PREREQUISITE, THEN EVERY ANALYSIS</span></h3>
-          <p style="font-size:14.5px">You analyse — and register your own dataset when you have one.</p>
+          <p style="font-size:14.5px">You analyse — <b>your dataset is yours:</b> created from the cluster data, per project.</p>
           <div class="steps-big" style="font-size:14px">
             <div class="big"><span><b>Prerequisite, once, ever:</b> <code>create_user</code> — registers you in <code>User_Registry</code></span></div>
+            <div class="big"><span><b>Per project:</b> create your dataset — a cohort csv with your slides — and <b>register it
+            into MLflow</b>: <code>register_dataset</code> defines it <span style="color:var(--dim)">(the manifest + fingerprint;
+            the run sits in your project's experiment)</span></span></div>
             <div class="big"><span><b>Per analysis:</b> split your way — log it to MLflow, pin it in the config — then <b>train with mlkit</b></span></div>
-            <div class="big"><span><b>Zero provenance code</b> in your training app — one <code>ProvenanceCallback</code> block in the trainer config</span></div>
-            <div class="big"><span>Look at results in the MLflow UI</span></div>
+            <div class="big"><span><b>Zero provenance code</b> in your training app — one <code>ProvenanceCallback</code> block in the trainer config · results in the MLflow UI</span></div>
           </div>
         </div>
       </div>
@@ -278,14 +280,14 @@
 
     <!-- 6 · part 3: register prerequisite -->
     <section class="slide">
-      <div class="part"><b>PART 3 · YOUR WORKFLOW</b><span>prerequisite — anyone with data</span></div>
-      <h2><span class="badge old">PREREQUISITE · ANYONE WITH DATA</span> Register the dataset — once per version</h2>
-      <p class="sub" style="font-size:14.5px; margin-top:0">Done by whoever brings the dataset — <b>no analysis can run before it</b>.</p>
+      <div class="part"><b>PART 3 · YOUR WORKFLOW</b><span>prerequisite — per project</span></div>
+      <h2><span class="badge old">PREREQUISITE · PER PROJECT</span> Create your dataset — and register it</h2>
+      <p class="sub" style="font-size:14.5px; margin-top:0">Done by you, from the data on the cluster — <b>no analysis can run before it</b>.</p>
       <div class="cols">
         <div style="flex:1.2">
           <div class="steps-big" style="font-size:14px">
-            <div class="big"><span><b>Data is on the cluster</b> — any file type (<code>.mrxs</code>, <code>.svs</code>…),
-            any folder shape, plus the cohort csv that lists the slides.</span></div>
+            <div class="big"><span><b>Data is on the cluster</b> — Adam's job done — pick your project's slides
+            into a cohort csv (any file type, any folder shape).</span></div>
             <div class="big"><span><b>Run one call</b> — the provenance lib, no repo needed:
               <pre style="margin-top:6px"><span class="you">$</span> uv run --with git+https://github.com/RationAI/provenance python -c "
 from rationai.provenance import register_dataset
@@ -294,7 +296,8 @@ print(register_dataset('/mnt/data/.../mammaprint/slides.csv',
 <span class="adam">f94f159b…</span></pre></span></div>
             <div class="big"><span><b>Fingerprint stored</b> — <code>manifest.csv</code> written next to the csv;
             the registration run in the project's experiment records the folder, name + version.</span></div>
-            <div class="big"><span><b>Share it</b> — the <code>run_id</code>, or whoever analyses finds the run in MLflow.</span></div>
+            <div class="big"><span><b>Share it</b> — the registration run sits in <b>your project's experiment</b>;
+            your analyses pin its <code>run_id</code>.</span></div>
           </div>
         </div>
         <div>
@@ -501,12 +504,12 @@ mlflow.log_param("data_path", ...)      <span class="c">❌ a path string — no
       <h2>The whole process — from data gathering to model</h2>
       <div style="display:flex; gap:6px">
         <div class="step"><span class="ico">🛰️</span><b>data gathering</b>
-          <span>slides on the cluster, any type + the cohort csv</span>
-          <span><b style="color:var(--warn)">📦</b> whoever brings the data</span></div>
+          <span>slides on the cluster — any type, any shape</span>
+          <span><b style="color:var(--warn)">🧑‍🔬</b> Adam Kukučka · his whole job</span></div>
         <div class="arrow">→</div>
         <div class="step"><span class="ico">🔐</span><b>register_dataset</b>
           <span>fingerprint — file sizes + mtimes, manifest</span>
-          <span><b style="color:var(--warn)">📦</b> once per dataset · MLflow run</span></div>
+          <span><b style="color:var(--good)">👤</b> per project · MLflow run</span></div>
         <div class="arrow">→</div>
         <div class="step"><span class="ico">✂️</span><b>split</b>
           <span>train/test csvs — your method, any framework</span>
@@ -572,7 +575,7 @@ mlflow.log_param("data_path", ...)      <span class="c">❌ a path string — no
             <div class="steps-big" style="font-size:14px">
               <div class="big"><span>☁️ <b>every step is a kube-job</b> — rerunnable, identity + hardware recorded, one <code>EXPERIMENT</code> line switches dataset</span></div>
               <div class="big"><span>🔬 <b>provenance with zero code</b> — the data steps already have it; your mlkit training gets it from one callback block</span></div>
-              <div class="big"><span>📦 anyone <b>registers</b> a dataset (once per dataset) · 👤 everyone <code>create_user</code> (once) · 🧠 <b>split once + train with mlkit</b> — zero provenance code</span></div>
+              <div class="big"><span>🧑‍🔬 <b>Adam brings the data</b> · 👤 everyone <code>create_user</code> (once) + their project's dataset · 🧠 <b>split once + train with mlkit</b> — zero provenance code</span></div>
             </div>
           </div>
           <div class="card" style="margin-top:12px">
