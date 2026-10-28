@@ -25,7 +25,9 @@ def run(config: DictConfig, logger: MLFlowLogger) -> None:
             f"registry username '{username}' — export MLFLOW_USER={username} "
             "so local runs link to you"
         )
-    log_provenance(config=config)
+    # register FIRST — log_provenance looks the user up in User_Registry and
+    # now fails on an unregistered user (create_user is the only step allowed
+    # to run before that registration exists)
     with suspended_run():
         run_id = register_new_user(
             username=username,
@@ -35,5 +37,7 @@ def run(config: DictConfig, logger: MLFlowLogger) -> None:
             lead_name=str(step.lead_name),
             lead_email=str(step.lead_email),
         )
+    os.environ["MLFLOW_USER"] = username  # the lookup below must find the user just registered
+    log_provenance(config=config)
     mlflow.set_tag("user_run_id", run_id)
     print(f"[create_user] registered '{username}' → User_Registry run {run_id}")
