@@ -27,6 +27,9 @@ BRANCH = "feature/provenance-pipeline"
 
 IMAGE = "cerit.io/jiri_buchta/base-test-cuda:0.0.7"  # TODO: your image
 
+# The experiment config the jobs run: configs/experiment/<EXPERIMENT>.yaml
+EXPERIMENT = "provenance_pipeline"
+
 
 def _username() -> str:
     """Cluster username from the kube config (as submit_job resolves it)."""
@@ -64,7 +67,7 @@ def submit_steps(steps: list[str], cpu: int = 2, memory: str = "4Gi") -> None:
             "uv sync",
             "export PYTHONUNBUFFERED=1",
             *[
-                f"uv run python -m pipeline pipeline={step} +experiment=provenance_pipeline"
+                f"uv run python -m pipeline pipeline={step} +experiment={EXPERIMENT}"
                 for step in steps
             ],
         ],
