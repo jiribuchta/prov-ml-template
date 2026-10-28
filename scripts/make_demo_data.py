@@ -12,7 +12,7 @@ shape real data usually comes in (e.g. a slide folder + a cohort table)::
 Try the full pipeline without real data::
 
     uv run python scripts/make_demo_data.py --out data/demo
-    uv run python -m pipeline pipeline=create +experiment=provenance_pipeline \
+    uv run python -m pipeline pipeline=register_dataset +experiment=provenance_pipeline \
         pipeline.source=data/demo/samples.csv pipeline.path_column=file \
         pipeline.label_column=category
 """

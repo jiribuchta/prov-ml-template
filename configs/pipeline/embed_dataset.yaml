@@ -1,9 +1,9 @@
 # @package _global_
 # Reduce the registered samples to embeddings (PCA) from the split run's train set.
 metadata:
-  run_name: embed
+  run_name: embed_dataset
 
 pipeline:
-  step: embed
+  step: embed_dataset
   n_components: 2
   seed: 42

@@ -1,4 +1,4 @@
 defaults:
   - base
-  - pipeline: ??? # select with pipeline=create|split|embed|cluster
+  - pipeline: ??? # select with pipeline=create_user|register_dataset|split_dataset|embed_dataset|learn
   - _self_

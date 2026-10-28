@@ -1,10 +1,10 @@
 # @package _global_
 # Build the manifest from the data and register the dataset.
 metadata:
-  run_name: create
+  run_name: register_dataset
 
 pipeline:
-  step: create
+  step: register_dataset
   # Where the sample list comes from:
   #   a table (csv/xlsx) whose path_column lists the sample files —
   #     e.g. /mnt/data/.../cohort.xlsx

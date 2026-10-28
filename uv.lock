@@ -2223,7 +2223,7 @@ requires-dist = [
     { name = "numpy", specifier = ">=2.0" },
     { name = "openpyxl", specifier = ">=3.1" },
     { name = "pandas", specifier = ">=2.2" },
-    { name = "rationai-kube-jobs", marker = "extra == 'job'", git = "ssh://git@gitlab.ics.muni.cz/rationai/infrastructure/kube-jobs?branch=feature%2Fjob-env-metadata" },
+    { name = "rationai-kube-jobs", marker = "extra == 'job'", git = "ssh://git@gitlab.ics.muni.cz/rationai/infrastructure/kube-jobs" },
     { name = "rationai-mlkit", git = "https://github.com/RationAI/mlkit.git" },
     { name = "rationai-provenance", git = "ssh://git@github.com/RationAI/provenance.git" },
     { name = "scikit-learn", specifier = ">=1.4" },
@@ -2536,7 +2536,7 @@ wheels = [
 [[package]]
 name = "rationai-kube-jobs"
 version = "0.4.0"
-source = { git = "ssh://git@gitlab.ics.muni.cz/rationai/infrastructure/kube-jobs?branch=feature%2Fjob-env-metadata#fdf17d359f8ccccd46f0996b3edd08b34b09bfba" }
+source = { git = "ssh://git@gitlab.ics.muni.cz/rationai/infrastructure/kube-jobs#6afe670b40c10d064719082d5bdf0ae41e777170" }
 dependencies = [
     { name = "click" },
     { name = "humanfriendly" },

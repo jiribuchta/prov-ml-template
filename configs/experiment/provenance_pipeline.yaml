@@ -2,7 +2,8 @@
 defaults:
   - _self_
 
-# Toy end-to-end demo of the provenance pipeline: create → split → embed → cluster.
+# Toy end-to-end demo of the provenance pipeline:
+# create_user → register_dataset → split_dataset → embed_dataset → learn.
 metadata:
   experiment_name: Provenance Pipeline
   description: |
@@ -15,5 +16,5 @@ dataset:
   # Pin upstream runs to freeze the chain (URIs are printed by each step);
   # null = automatically use the latest finished run of the upstream step.
   mlflow_uris:
-    split: null # e.g. runs:/<run_id>/train.csv
-    embed: null # e.g. runs:/<run_id>/embeddings/train.csv
+    split_dataset: null # e.g. runs:/<run_id>/train.csv
+    embed_dataset: null # e.g. runs:/<run_id>/embeddings/train.csv

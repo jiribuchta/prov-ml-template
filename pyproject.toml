@@ -22,7 +22,7 @@ dependencies = [
 job = ["rationai-kube-jobs"]
 
 [tool.uv.sources]
-rationai-kube-jobs = { git = "ssh://git@gitlab.ics.muni.cz/rationai/infrastructure/kube-jobs", branch = "feature/job-env-metadata" }
+rationai-kube-jobs = { git = "ssh://git@gitlab.ics.muni.cz/rationai/infrastructure/kube-jobs" }
 rationai-mlkit = { git = "https://github.com/RationAI/mlkit.git" }
 rationai-provenance = { git = "ssh://git@github.com/RationAI/provenance.git" }
 
