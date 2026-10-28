@@ -159,23 +159,25 @@
     <!-- 3 · part 2: provenance overview -->
     <section class="slide">
       <div class="part"><b>PART 2 · PROVENANCE</b><span>how it works</span></div>
-      <h2>Three registries answer three questions</h2>
+      <h2>Three kinds of run answer three questions</h2>
       <div class="cols">
         <div class="card">
-          <h3 style="margin-top:0">👤 User_Registry — <b>who</b></h3>
-          <p style="font-size:14px">One run per person (<code>create_user</code>, once ever).
-          Your kube username is the key — every run you start is linked to you.</p>
+          <h3 style="margin-top:0">👤 user run — <b>who</b></h3>
+          <p style="font-size:14px">One per person (<code>create_user</code>, once ever) in the
+          <code>User_Registry</code> experiment. Your kube username is the key — every run you
+          start is linked to you.</p>
         </div>
         <div class="card">
-          <h3 style="margin-top:0">🗂️ Dataset_Registry — <b>what data</b></h3>
-          <p style="font-size:14px">One run per dataset version (<code>register_dataset</code>,
-          run by whoever brings the data): the fingerprint — file sizes + mtimes — that later
-          steps verify your disk against.</p>
+          <h3 style="margin-top:0">🗂️ dataset registration run — <b>what data</b></h3>
+          <p style="font-size:14px">One per dataset version (<code>register_dataset</code>,
+          run by whoever brings the data) — <b>in the project's experiment</b>: the
+          fingerprint — file sizes + mtimes — that later steps verify your disk against.</p>
         </div>
         <div class="card">
           <h3 style="margin-top:0">▶ pipeline runs — <b>what happened</b></h3>
-          <p style="font-size:14px">One MLflow run per step: user, git commit, docker image,
-          hardware, seeds, upstream <code>inputs</code>, output artifacts — chained by pinned URIs.</p>
+          <p style="font-size:14px">One MLflow run per step — same experiment: user, git commit,
+          docker image, hardware, seeds, upstream <code>inputs</code>, output artifacts —
+          chained by pinned URIs.</p>
         </div>
       </div>
       <div class="cols" style="margin-top:14px">
@@ -269,7 +271,7 @@
       </div>
       <div class="card" style="margin-top:16px">
         <p style="font-size:13.5px; margin:4px 0; color:var(--dim)">🖥️ <b>Nobody's job here:</b> the MLflow server and the
-        registries (<code>User_Registry</code>, <code>Dataset_Registry</code>) already run — steps below just fill them.</p>
+        <code>User_Registry</code> already run — steps below just fill them.</p>
       </div>
     </section>
 
@@ -301,8 +303,9 @@
             <h3 style="margin-top:0">What it needs → what it produces</h3>
             <p style="font-size:13.5px; margin:6px 0"><b>needs:</b> the data on the cluster + 3 YAML entries —
             <code>data_path</code>, <code>source</code> (the csv with the slide paths), <code>name</code>+<code>version</code></p>
-            <p style="font-size:13.5px; margin:6px 0"><b>produces:</b> <code>manifest.csv</code> · a <code>Dataset_Registry</code> run
-            with the dataset fingerprint (file sizes + mtimes) · the <code>run_id</code> to share</p>
+            <p style="font-size:13.5px; margin:6px 0"><b>produces:</b> <code>manifest.csv</code> · a registration run
+            <b>in the project's experiment</b> with the dataset fingerprint (file sizes + mtimes)
+            · the <code>run_id</code> to share</p>
           </div>
           <div class="card" style="margin-top:12px">
             <h3 style="margin-top:0">The csv with the slide paths</h3>
@@ -462,7 +465,7 @@ mlflow.log_param("data_path", ...)      <span class="c">❌ a path string — no
             </div>
           </div>
           <div class="run" style="margin-top:10px">
-            <h4>🗄️ registration run · experiment “Dataset_Registry”</h4>
+            <h4>🗄️ registration run · your project's experiment</h4>
             <div class="kv">
               <span>per dataset version</span><b><code>file_sizes</code> / <code>file_mtimes</code> — the fingerprint that <code>verify_dataset</code> checks your disk against</b>
             </div>
