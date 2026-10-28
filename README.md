@@ -139,9 +139,9 @@ always names the exact dataset it consumed.
 ## Training on the splits with mlkit
 
 > The split steps above are the template's demo producer — your own splitter
-> works too: any run that logs a `train.csv` (wsi_path column, the file list)
-> is a valid split. Training verifies it against the `dataset.run_id` you
-> already pin.
+> works too: any mlkit preprocessing app (`@hydra.main` + `@autolog`) that
+> logs a `train.csv` (wsi_path column, the file list) is a valid split.
+> Training verifies it against the `dataset.run_id` you already pin.
 
 To train on this pipeline's output with the standard RationAI stack
 (rationai-mlkit), you write **no provenance code at all** — the pipeline

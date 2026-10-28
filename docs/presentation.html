@@ -362,14 +362,14 @@ print(register_dataset('/mnt/data/.../mammaprint/slides.csv',
       <div class="cols">
         <div style="flex:1.35">
           <div class="term">
-            <div class="term-bar"><i></i><i></i><i></i><em>your code — any splitter</em></div>
-            <pre><span class="c"># your split, as always — any method, any framework</span>
-train, test = my_split(cohort)
-
-<span class="c"># log it to MLflow, as always — nothing provenance-specific here:</span>
-<span class="k">with</span> mlflow.start_run(run_name=<span class="p">"my_split"</span>):
-    train.to_csv(<span class="p">"train.csv"</span>, index=<span class="k">False</span>)   <span class="c"># wsi_path column — the file list</span>
-    mlflow.log_artifact(<span class="p">"train.csv"</span>)
+            <div class="term-bar"><i></i><i></i><i></i><em>your preprocessing app — same shape as tiling / qc</em></div>
+            <pre><span class="c"># your job, as always — an ordinary mlkit preprocessing app:</span>
+<span class="p">@hydra.main</span>(config_path=<span class="p">"../configs"</span>, config_name=<span class="p">"my_split"</span>)
+<span class="p">@autolog</span>
+<span class="k">def</span> <span class="p">main</span>(config, logger: MLFlowLogger):
+    train, test = my_split(cohort)             <span class="c"># any method, any framework</span>
+    train.to_csv(<span class="p">"train.csv"</span>, index=<span class="k">False</span>)     <span class="c"># wsi_path column — the file list</span>
+    logger.log_artifact(<span class="p">"train.csv"</span>)
 
 <span class="c"># then pin it in the trainer config (the run_id is there from step 1):</span>
 <span class="k">dataset:</span>
@@ -392,8 +392,9 @@ train, test = my_split(cohort)
           </div>
           <div class="card" style="margin-top:12px">
             <p style="font-size:14px; margin:4px 0">🧬 The template's <code>split_dataset</code> step (plus <code>embed_dataset</code> /
-            <code>learn</code>) is just a demo producer of such a run — bring your own splitter; a file
-            list + the tag is all training needs.</p>
+            <code>learn</code>) is just a demo producer of such a run — bring your own splitter; the file
+            list is all training needs. And <code>@autolog</code> already gives the run its
+            config, stream and git tags.</p>
           </div>
         </div>
       </div>
