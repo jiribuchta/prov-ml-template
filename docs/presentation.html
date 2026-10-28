@@ -310,8 +310,9 @@ print(register_dataset('/mnt/data/.../mammaprint',
           <div class="card" style="margin-top:12px">
             <h3 style="margin-top:0">manifest.csv — the cohort table</h3>
             <p style="font-size:13.5px; margin:6px 0">📊 usually the <b>cohort table that ships with the data</b> —
-            a <code>wsi_path</code> column with the paths, a <code>cancer</code> column with the classes</p>
-            <p style="font-size:13.5px; margin:6px 0">📁 paths absolute or relative to the data folder ·
+            <b>only a path column is needed</b> (<code>wsi_path</code> / <code>path</code> / <code>slide</code>)</p>
+            <p style="font-size:13.5px; margin:6px 0">🏷️ an optional <code>cancer</code> column with the classes —
+            needed only when you'll classify · 📁 paths absolute or relative,
             <b>registered in place, nothing copied</b></p>
           </div>
         </div>
