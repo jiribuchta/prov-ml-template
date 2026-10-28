@@ -340,7 +340,7 @@ print(register_dataset('/mnt/data/.../mammaprint/slides.csv',
           <div class="card" style="margin-top:10px; border-color:#4a3d28">
             <p style="font-size:13.5px; margin:4px 0">⚠️ <b style="color:var(--warn)">username must be exactly your
             Rancher username</b> — kube-jobs derives <code>JOB_USER</code> from your kube config and provenance looks
-            your runs up by it — a mismatch orphans every run you start.</p>
+            your runs up by it — an unregistered user <b>fails the run at startup</b>.</p>
           </div>
           <div class="card" style="margin-top:10px">
             <p style="font-size:13.5px; margin:4px 0">📤 <b>easier, from the repo:</b> submit it as a kube-job —
