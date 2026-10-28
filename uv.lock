@@ -2225,7 +2225,7 @@ requires-dist = [
     { name = "pandas", specifier = ">=2.2" },
     { name = "rationai-kube-jobs", marker = "extra == 'job'", git = "ssh://git@gitlab.ics.muni.cz/rationai/infrastructure/kube-jobs" },
     { name = "rationai-mlkit", git = "https://github.com/RationAI/mlkit.git" },
-    { name = "rationai-provenance", git = "ssh://git@github.com/RationAI/provenance.git" },
+    { name = "rationai-provenance", git = "https://github.com/RationAI/provenance.git" },
     { name = "scikit-learn", specifier = ">=1.4" },
     { name = "torch", specifier = ">=2.9.0" },
 ]
@@ -2564,7 +2564,7 @@ dependencies = [
 [[package]]
 name = "rationai-provenance"
 version = "0.1.0"
-source = { git = "ssh://git@github.com/RationAI/provenance.git#b5474bd137e940aba9d1e5ceb3c6592b98ab343b" }
+source = { git = "https://github.com/RationAI/provenance.git#b5474bd137e940aba9d1e5ceb3c6592b98ab343b" }
 dependencies = [
     { name = "mlflow" },
     { name = "omegaconf" },
