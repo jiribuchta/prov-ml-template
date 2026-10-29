@@ -534,7 +534,9 @@ os.environ[<span class="you">"MLFLOW_USER"</span>] = <span class="you">"&lt;ranc
           <h3 style="margin-top:0">🤖 what the kube-job injected</h3>
           <p style="font-size:14px"><code>MLFLOW_TRACKING_URI</code> — the MLflow server</p>
           <p style="font-size:14px"><code>JOB_USER</code> → your <b>Rancher username</b> — links the run to your <code>User_Registry</code> entry</p>
-          <p style="font-size:14px">Everything else — git commit, hardware, environment — is captured locally anyway.</p>
+          <p style="font-size:14px">Big artifact uploads? also set <code>MLFLOW_HTTP_REQUEST_TIMEOUT</code> (jobs use 600 s — MLflow's default is 120 s)</p>
+          <p style="font-size:14px">Requested cpu/memory/gpu/image (<code>JOB_*</code>) are absent — <b>by design</b>;
+          hardware is <b>measured</b> instead, incl. cgroup limits of a cluster notebook pod.</p>
         </div>
       </div>
     </section>
