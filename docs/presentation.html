@@ -509,6 +509,36 @@ mlflow.log_param("data_path", ...)  <span class="c">❌ a path, not the files</s
       the callback is the only difference, and it is config, not code — already done in the <b>provenance</b> branch of <b>RationAI/machine-learning</b>.</p>
     </section>
 
+    <!-- 10 · part 3: notebooks -->
+    <section class="slide">
+      <div class="part"><b>PART 3 · YOUR WORKFLOW</b><span>notebooks</span></div>
+      <h2 style="margin-bottom:12px">Jupyter? The kube-job set two variables for you — set them in the first cell</h2>
+      <div class="cols" style="margin-top:14px">
+        <div style="flex:1.3">
+          <div class="term">
+            <div class="term-bar"><i></i><i></i><i></i><em>first cell — after this, provenance works exactly as in a job</em></div>
+            <pre><span class="k">import</span> os
+os.environ[<span class="you">"MLFLOW_TRACKING_URI"</span>] = <span class="you">"https://mlflow…/"</span>   <span class="c"># where runs go</span>
+os.environ[<span class="you">"MLFLOW_USER"</span>] = <span class="you">"&lt;rancher-username&gt;"</span>   <span class="c"># = JOB_USER in-cluster</span>
+
+<span class="k">import</span> mlflow
+<span class="k">from</span> rationai.provenance <span class="k">import</span> log_provenance
+
+<span class="k">with</span> mlflow.start_run(run_name=<span class="you">"my-analysis"</span>):   <span class="c"># no @autolog in a notebook — you make the run</span>
+    log_provenance(name=<span class="you">"my-analysis"</span>, inputs=[<span class="you">"/mnt/data/…"</span>])</pre>
+          </div>
+          <p style="font-size:13.5px; color:var(--dim); margin-top:8px">Register yourself once first (<code>register_new_user</code>) — an unregistered user <b>fails the run</b>.
+          Training too: <code>ProvenanceCallback</code> is a plain class — pass it to any Lightning <code>Trainer</code>.</p>
+        </div>
+        <div class="card">
+          <h3 style="margin-top:0">🤖 what the kube-job injected</h3>
+          <p style="font-size:14px"><code>MLFLOW_TRACKING_URI</code> — the MLflow server</p>
+          <p style="font-size:14px"><code>JOB_USER</code> → your <b>Rancher username</b> — links the run to your <code>User_Registry</code> entry</p>
+          <p style="font-size:14px">Everything else — git commit, hardware, environment — is captured locally anyway.</p>
+        </div>
+      </div>
+    </section>
+
     <!-- 9b · part 3: the whole picture -->
     <section class="slide">
       <div class="part"><b>PART 3 · YOUR WORKFLOW</b><span>the whole picture</span></div>
