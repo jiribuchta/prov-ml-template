@@ -152,7 +152,7 @@ gets its provenance from the mlkit `@autolog` decorator (already on
 ```yaml
 trainer:
   callbacks:
-    - _target_: rationai.mlkit.lightning.callbacks.ProvenanceCallback
+    - _target_: rationai.provenance.lightning.ProvenanceCallback
       fail_fast: true
       dataset_run_id: ${dataset.run_id}    # ← the registration, from this config
       split_uris:                       # ← the bridge to this pipeline

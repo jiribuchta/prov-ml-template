@@ -186,7 +186,7 @@
             <div class="term-bar"><i></i><i></i><i></i><em>your mlkit trainer config — the whole provenance setup</em></div>
             <pre><span class="k">trainer:</span>
   <span class="k">callbacks:</span>
-    - <span class="p">_target_:</span> rationai.mlkit.lightning.callbacks.ProvenanceCallback
+    - <span class="p">_target_:</span> rationai.provenance.lightning.ProvenanceCallback
       <span class="k">fail_fast:</span> true        <span class="c"># abort if disk ≠ fingerprint</span>
       <span class="k">split_uris:</span> …       <span class="c"># your split run — chains + verifies</span></pre>
           </div>
@@ -486,7 +486,7 @@ mlflow.log_param("data_path", ...)  <span class="c">❌ a path, not the files</s
             <div class="term-bar"><i></i><i></i><i></i><em>configs/experiment/&lt;project&gt;.yaml — trainer section</em></div>
             <pre><span class="k">trainer:</span>
   <span class="k">callbacks:</span>
-    - <span class="p">_target_:</span> rationai.mlkit.lightning.callbacks.ProvenanceCallback
+    - <span class="p">_target_:</span> rationai.provenance.lightning.ProvenanceCallback
       <span class="k">fail_fast:</span> true             <span class="c"># abort if disk ≠ fingerprint</span>
       <span class="k">dataset_run_id:</span> ${dataset.run_id}  <span class="c"># ← what training reads</span>
       <span class="k">split_uris:</span>                <span class="c"># ← copied from your split run</span>
