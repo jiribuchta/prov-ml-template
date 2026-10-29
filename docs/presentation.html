@@ -587,7 +587,7 @@ mlflow.log_param("data_path", ...)  <span class="c">❌ a path, not the files</s
             <h3 style="margin-top:0">TL;DR</h3>
             <div class="steps-big" style="font-size:14px">
               <div class="big"><span>☁️ <b>every step is a kube-job</b> — rerunnable, identity + hardware recorded, one <code>EXPERIMENT</code> line switches dataset</span></div>
-              <div class="big"><span>🔬 <b>provenance with zero code</b> — the data steps already have it; your mlkit training gets it from one callback block</span></div>
+              <div class="big"><span>🔬 <b>provenance with zero code</b> — the data steps already have it (one <code>log_provenance</code> call each, baked in); your mlkit training gets it from one callback block — bring your own step? that one line is all you write</span></div>
               <div class="big"><span>🧑‍🔬 <b>Adam brings the data</b> · 👤 everyone <code>create_user</code> (once) + their project's dataset · 🧠 <b>split once + train with mlkit</b> — zero provenance code</span></div>
             </div>
           </div>
